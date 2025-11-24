@@ -61,18 +61,14 @@ body{margin:0;background:var(--bg);}
   padding:8px 16px;cursor:pointer;font-size:15px
 }
 .menu div:hover{background:#eee}
-
-/* Add Button */
 .add-btn{
   position:fixed;right:20px;bottom:20px;
-  background:var(--primary);color:#fff;
-  width:60px;height:60px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
+  background:var(--primary);color:#fff;width:60px;
+  height:60px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;
   font-size:32px;border:none;cursor:pointer;
   box-shadow:0 6px 14px rgba(0,0,0,0.2)
 }
-
-/* Modal */
 .modal-bg{
   position:fixed;top:0;left:0;width:100%;height:100%;
   background:rgba(0,0,0,0.4);display:none;
@@ -104,11 +100,19 @@ input,select{
     <input id="search" placeholder="Cari kegiatan atau tempat..." />
   </div>
 
-  <!-- Filters -->
+  <!-- Filter Hari + Tempat (filter Hari lengkap Senin–Minggu) -->
   <div class="filter-group">
     <select id="filterHari">
       <option value="">Semua Hari</option>
+      <option>Senin</option>
+      <option>Selasa</option>
+      <option>Rabu</option>
+      <option>Kamis</option>
+      <option>Jumat</option>
+      <option>Sabtu</option>
+      <option>Minggu</option>
     </select>
+
     <select id="filterTempat">
       <option value="">Semua Tempat</option>
     </select>
@@ -119,7 +123,7 @@ input,select{
 
 <button class="add-btn" onclick="openAdd()">+</button>
 
-<!-- Modal -->
+<!-- Modal Form -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <h2 id="modalTitle">Tambah Jadwal</h2>
@@ -134,7 +138,7 @@ input,select{
     <input id="f_tanggal" type="date" />
     <input id="f_mulai" type="time" />
     <input id="f_selesai" type="time" />
-    <input id="f_kegiatan" placeholder="Nama kegiatan" />
+    <input id="f_kegiatan" placeholder="Kegiatan" />
     <input id="f_tempat" placeholder="Tempat" />
 
     <button class="btn-save" onclick="saveData()">Simpan</button>
@@ -150,172 +154,196 @@ let editIndex = -1;
 
 /* ========== UTIL ========== */
 
-// Format 08:00
-function fixTime(str){
-  if(!str) return "";
-  let [h,m] = str.split(":");
-  h = h.padStart(2,"0");
-  m = (m||"00").padStart(2,"0");
+// Format jam universal: menerima '9', '9.00', '9:00', '09:00', returns '09:00'
+function formatWaktuUniversal(val){
+  if(!val && val !== 0) return "";
+  const s = String(val).trim().toLowerCase();
+  if(s === "selesai") return "SELESAI";
+  // replace dot with colon
+  const cleaned = s.replace(".", ":").split(" ")[0];
+  let [h,m] = cleaned.split(":");
+  if(!m) m = "00";
+  h = String(h).padStart(2, "0");
+  m = String(m).padStart(2, "0");
   return `${h}:${m}`;
 }
 
-// Format tanggal: JUMAT, 28 NOVEMBER 2025
-function indoTanggal(tgl){
-  const d = new Date(tgl);
-  const day = ["MINGGU","SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU"][d.getDay()];
-  const bulan = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"][d.getMonth()];
-  return `${day}, ${d.getDate()} ${bulan} ${d.getFullYear()}`;
+// Format tanggal: input '2025-11-28' -> 'JUMAT, 28 NOVEMBER 2025'
+function formatTanggalAllCaps(isoStr){
+  if(!isoStr) return "";
+  const d = new Date(isoStr);
+  if(isNaN(d)) return isoStr.toString().toUpperCase();
+  const hari = d.toLocaleDateString("id-ID",{weekday:"long"}).toUpperCase();
+  const tanggal = String(d.getDate()).padStart(2,"0");
+  const bulan = d.toLocaleDateString("id-ID",{month:"long"}).toUpperCase();
+  const tahun = d.getFullYear();
+  return `${hari}, ${tanggal} ${bulan} ${tahun}`;
 }
-
 
 /* ========== LOAD DATA ========== */
-function loadData(){
-  fetch(API_URL)
-    .then(r=>r.json())
-    .then(d=>{
-      dataRaw = d;
-      populateFilters();
-      render();
+
+async function loadData(){
+  try{
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    dataRaw = data.map(r=>({
+      hari: (r.hari||'').toString(),
+      tanggal: (r.tanggal||'').toString(),
+      waktu_mulai: (r.waktu_mulai||'').toString(),
+      waktu_selesai: (r.waktu_selesai||'').toString(),
+      kegiatan: (r.kegiatan||'').toString(),
+      tempat: (r.tempat||'').toString()
+    }));
+
+    // populate tempat filter
+    const tempatSet = new Set();
+    dataRaw.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat); });
+    const tSel = document.getElementById("filterTempat");
+    tSel.innerHTML = '<option value="">Semua Tempat</option>';
+    [...tempatSet].sort().forEach(t=>{
+      const o = document.createElement("option"); o.value=t; o.textContent=t; tSel.appendChild(o);
     });
+
+    render();
+  }catch(err){
+    console.error('Gagal load data', err);
+    document.getElementById("list").innerHTML = '<div style="padding:16px;color:#666">Gagal memuat data. Periksa koneksi atau API.</div>';
+  }
 }
 
-/* ========== FILTERS ========== */
-function populateFilters(){
-  const hariSet = new Set();
-  const tempatSet = new Set();
+/* ========== RENDER ========== */
 
-  dataRaw.forEach(r=>{
-    if(r.hari) hariSet.add(r.hari);
-    if(r.tempat) tempatSet.add(r.tempat);
-  });
-
-  const hSel = document.getElementById("filterHari");
-  const tSel = document.getElementById("filterTempat");
-
-  [...hariSet].sort().forEach(h=>{
-    const o = document.createElement("option");
-    o.value = h; o.textContent = h;
-    hSel.appendChild(o);
-  });
-
-  [...tempatSet].sort().forEach(t=>{
-    const o = document.createElement("option");
-    o.value = t; o.textContent = t;
-    tSel.appendChild(o);
-  });
-}
-
-/* ========== RENDER LIST ========== */
 function render(){
-  const q = search.value.toLowerCase();
-  const fH = filterHari.value;
-  const fT = filterTempat.value;
-
+  const q = (document.getElementById("search").value||'').toLowerCase();
+  const fH = document.getElementById("filterHari").value;
+  const fT = document.getElementById("filterTempat").value;
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  dataRaw
-    .filter(r=>{
+  const filtered = dataRaw
+    .filter((r)=> {
       if(fH && r.hari !== fH) return false;
       if(fT && r.tempat !== fT) return false;
-
-      return (
-        r.kegiatan.toLowerCase().includes(q) ||
-        r.tempat.toLowerCase().includes(q)
-      );
-    })
-    .forEach((r,i)=>{
-      const mulai = fixTime(r.waktu_mulai);
-      const selesai = r.waktu_selesai ? fixTime(r.waktu_selesai) : "SELESAI";
-
-      const div = document.createElement("div");
-      div.className="card";
-
-      div.innerHTML = `
-        <button class='more-btn' onclick='toggleMenu(${i})'>⋮</button>
-        <div class='menu' id='menu-${i}'>
-          <div onclick='editItem(${i})'>Edit</div>
-          <div onclick='deleteItem(${i})'>Hapus</div>
-        </div>
-
-        <div class='card-meta' style="font-weight:700">${indoTanggal(r.tanggal)}</div>
-        <div class='card-meta'>${mulai} - ${selesai}</div>
-        <div class='card-title'>${r.kegiatan.toUpperCase()}</div>
-        <div class='card-meta'>📍 ${r.tempat}</div>
-      `;
-
-      list.appendChild(div);
+      const text = ((r.kegiatan||'') + ' ' + (r.tempat||'') + ' ' + (r.hari||'')).toLowerCase();
+      if(q && !text.includes(q)) return false;
+      return true;
     });
-}
 
-search.oninput = render;
-filterHari.onchange = render;
-filterTempat.onchange = render;
-
-/* ========== MENU ========== */
-function toggleMenu(i){
-  const m = document.getElementById(`menu-${i}`);
-  m.style.display = m.style.display==="block" ? "none" : "block";
-}
-
-/* ========== ADD / EDIT ========== */
-function openAdd(){
-  editIndex=-1;
-  clearForm();
-  modalTitle.innerText="Tambah Jadwal";
-  modalBg.style.display="flex";
-}
-function clearForm(){
-  f_hari.value="";
-  f_tanggal.value="";
-  f_mulai.value="";
-  f_selesai.value="";
-  f_kegiatan.value="";
-  f_tempat.value="";
-}
-function closeModal(){ modalBg.style.display="none"; }
-
-function editItem(i){
-  editIndex=i;
-  const r = dataRaw[i];
-  f_hari.value=r.hari;
-  f_tanggal.value=r.tanggal;
-  f_mulai.value=r.waktu_mulai;
-  f_selesai.value=r.waktu_selesai;
-  f_kegiatan.value=r.kegiatan;
-  f_tempat.value=r.tempat;
-
-  modalTitle.innerText="Edit Jadwal";
-  modalBg.style.display="flex";
-}
-
-function saveData(){
-  const obj={
-    hari:f_hari.value,
-    tanggal:f_tanggal.value,
-    waktu_mulai:f_mulai.value,
-    waktu_selesai:f_selesai.value,
-    kegiatan:f_kegiatan.value,
-    tempat:f_tempat.value
-  };
-
-  if(editIndex===-1){
-    obj.action="add";
-  } else {
-    obj.action="edit";
-    obj.row=editIndex+2;
+  if(filtered.length === 0){
+    list.innerHTML = '<div style="padding:16px;color:#666">Tidak ada jadwal.</div>';
+    return;
   }
 
-  fetch(API_URL,{method:"POST",body:JSON.stringify(obj)})
-    .then(r=>r.text())
-    .then(()=>{ closeModal(); loadData(); });
+  filtered.forEach((r,i)=>{
+    const tanggalText = formatTanggalAllCaps(r.tanggal);
+    const mulai = formatWaktuUniversal(r.waktu_mulai);
+    const selesaiRaw = (r.waktu_selesai||'').trim();
+    const selesai = selesaiRaw.toLowerCase()==='selesai' || selesaiRaw==='' ? 'SELESAI' : formatWaktuUniversal(r.waktu_selesai);
+
+    const card = document.createElement("div"); card.className="card";
+    card.innerHTML = `
+      <button class='more-btn' onclick='toggleMenu(${i})'>⋮</button>
+      <div class='menu' id='menu-${i}' style="display:none">
+        <div onclick='editItem(${i})'>Edit</div>
+        <div onclick='deleteItem(${i})' style="color:#e53935">Hapus</div>
+      </div>
+
+      <div class="card-meta" style="font-weight:700">${tanggalText}</div>
+      <div class="card-meta">${mulai} - ${selesai}</div>
+      <div class="card-title">${String(r.kegiatan || '').toUpperCase()}</div>
+      <div class="card-meta">📍 ${r.tempat || ''}</div>
+    `;
+    list.appendChild(card);
+  });
 }
 
-function deleteItem(i){
+/* ========== UI actions ========== */
+
+document.getElementById("search").addEventListener('input', render);
+document.getElementById("filterHari").addEventListener('change', render);
+document.getElementById("filterTempat").addEventListener('change', render);
+
+function toggleMenu(i){
+  // close others
+  document.querySelectorAll('.menu').forEach(m=>m.style.display='none');
+  const m = document.getElementById(`menu-${i}`);
+  if(m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+
+/* ========== ADD / EDIT / DELETE ========== */
+
+function openAdd(){
+  editIndex = -1;
+  document.getElementById('modalTitle').innerText = 'Tambah Jadwal';
+  document.getElementById('f_hari').value = '';
+  document.getElementById('f_tanggal').value = '';
+  document.getElementById('f_mulai').value = '';
+  document.getElementById('f_selesai').value = '';
+  document.getElementById('f_kegiatan').value = '';
+  document.getElementById('f_tempat').value = '';
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+function closeModal(){ document.getElementById('modalBg').style.display='none'; }
+
+function editItem(i){
+  editIndex = i;
+  const r = dataRaw[i];
+  document.getElementById('modalTitle').innerText = 'Edit Jadwal';
+  document.getElementById('f_hari').value = r.hari || '';
+  // try to set date in yyyy-mm-dd if possible
+  try{
+    const d = new Date(r.tanggal);
+    if(!isNaN(d)){
+      const yyyy = d.getFullYear(); const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0');
+      document.getElementById('f_tanggal').value = `${yyyy}-${mm}-${dd}`;
+    } else {
+      document.getElementById('f_tanggal').value = '';
+    }
+  }catch(e){ document.getElementById('f_tanggal').value = ''; }
+
+  document.getElementById('f_mulai').value = formatWaktuUniversal(r.waktu_mulai);
+  document.getElementById('f_selesai').value = r.waktu_selesai && r.waktu_selesai.toLowerCase()==='selesai' ? '' : formatWaktuUniversal(r.waktu_selesai);
+  document.getElementById('f_kegiatan').value = r.kegiatan || '';
+  document.getElementById('f_tempat').value = r.tempat || '';
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+async function saveData(){
+  const payload = {
+    hari: document.getElementById('f_hari').value,
+    tanggal: document.getElementById('f_tanggal').value,
+    waktu_mulai: document.getElementById('f_mulai').value,
+    waktu_selesai: document.getElementById('f_selesai').value || 'SELESAI',
+    kegiatan: document.getElementById('f_kegiatan').value,
+    tempat: document.getElementById('f_tempat').value
+  };
+
+  try{
+    if(editIndex === -1){
+      const params = new URLSearchParams(payload); params.append('action','add');
+      await fetch(API_URL + '?' + params.toString());
+    } else {
+      const params = new URLSearchParams(payload); params.append('action','edit'); params.append('row', String(editIndex+2));
+      await fetch(API_URL + '?' + params.toString());
+    }
+    closeModal();
+    await loadData();
+  }catch(err){
+    alert('Gagal menyimpan: ' + err.message);
+  }
+}
+
+async function deleteItem(i){
+  if(!confirm('Yakin ingin menghapus jadwal ini?')) return;
   const row = i+2;
-  fetch(API_URL,{method:"POST",body:JSON.stringify({action:"delete",row})})
-    .then(r=>r.text())
-    .then(()=>loadData());
+  try{
+    const params = new URLSearchParams(); params.append('action','delete'); params.append('row', String(row));
+    await fetch(API_URL + '?' + params.toString());
+    await loadData();
+  }catch(err){
+    alert('Gagal hapus: ' + err.message);
+  }
 }
 
 /* INIT */
