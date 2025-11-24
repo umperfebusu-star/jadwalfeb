@@ -144,14 +144,14 @@
     }
 
     function populateFilters(){
-      const hariSet = new Set();
+      const allDays = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
       const tempatSet = new Set();
-      rawData.forEach(r=>{ if(r.hari) hariSet.add(r.hari); if(r.tempat) tempatSet.add(r.tempat); });
+      rawData.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat); });
 
-      // clear
       filterHari.innerHTML=''; filterTempat.innerHTML='';
+
       const optAllH = document.createElement('option'); optAllH.value=''; optAllH.textContent='Filter: Semua Hari'; filterHari.appendChild(optAllH);
-      [...hariSet].sort().forEach(h=>{ const o=document.createElement('option'); o.value=h; o.textContent=h; filterHari.appendChild(o); });
+      allDays.forEach(h=>{ const o=document.createElement('option'); o.value=h; o.textContent=h; filterHari.appendChild(o); });
 
       const optAllT = document.createElement('option'); optAllT.value=''; optAllT.textContent='Filter: Semua Tempat'; filterTempat.appendChild(optAllT);
       [...tempatSet].sort().forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; filterTempat.appendChild(o); });
