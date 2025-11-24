@@ -1,354 +1,228 @@
-<!doctype html>
-<html lang="id">
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Admin Jadwal</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Jadwal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
 
-<style>
-:root{
-  --primary:#3949ab;
-  --bg:#f5f7fa;
-  --card:#ffffff;
-  --radius:16px;
-  --pad:16px;
-  font-family:'Segoe UI',Roboto,Arial;
-}
-body{margin:0;background:var(--bg);}
-.header{
-  height:60px;background:var(--primary);color:#fff;
-  display:flex;align-items:center;padding:0 16px;
-  font-size:20px;font-weight:600
-}
-.container{padding:16px}
+        input,
+        select,
+        button {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+        }
 
-/* Search */
-.search-box{
-  background:#fff;padding:10px 14px;border-radius:30px;
-  margin-bottom:16px;box-shadow:0 3px 8px rgba(0,0,0,0.1);
-  display:flex;align-items:center
-}
-.search-box input{
-  border:none;outline:none;font-size:16px;width:100%
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
 
-/* Filter */
-.filter-group{display:flex;gap:10px;margin-bottom:16px}
-.filter-group select{
-  flex:1;padding:12px;border-radius:12px;border:1px solid #ccc;
-  font-size:15px
-}
+        table th,
+        table td {
+            padding: 10px;
+            border: 1px solid #999;
+            font-size: 14px;
+            text-align: left;
+        }
 
-/* Cards */
-.card{
-  background:var(--card);border-radius:var(--radius);
-  padding:16px;margin-bottom:16px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.08);
-  position:relative
-}
-.card-title{font-size:18px;font-weight:700;margin-top:8px}
-.card-meta{font-size:15px;color:#444;margin-bottom:6px}
-.more-btn{
-  position:absolute;right:12px;top:12px;font-size:22px;
-  background:none;border:none;cursor:pointer
-}
-.menu{
-  position:absolute;right:12px;top:38px;background:#fff;
-  border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.15);
-  padding:6px;display:none;z-index:10
-}
-.menu div{
-  padding:8px 16px;cursor:pointer;font-size:15px
-}
-.menu div:hover{background:#eee}
-.add-btn{
-  position:fixed;right:20px;bottom:20px;
-  background:var(--primary);color:#fff;width:60px;
-  height:60px;border-radius:50%;display:flex;
-  align-items:center;justify-content:center;
-  font-size:32px;border:none;cursor:pointer;
-  box-shadow:0 6px 14px rgba(0,0,0,0.2)
-}
-.modal-bg{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.4);display:none;
-  align-items:center;justify-content:center
-}
-.modal{
-  background:#fff;width:90%;max-width:380px;border-radius:14px;padding:20px
-}
-.modal h2{margin:0 0 10px;font-size:20px;font-weight:700}
-input,select{
-  width:100%;padding:10px;margin-top:6px;margin-bottom:12px;
-  font-size:15px;border-radius:10px;border:1px solid #ccc
-}
-.modal button{
-  padding:10px 16px;font-size:16px;border:none;
-  border-radius:10px;cursor:pointer;margin-top:4px
-}
-.btn-save{background:var(--primary);color:#fff}
-.btn-cancel{background:#aaa;color:#fff;margin-left:6px}
-</style>
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        #loading {
+            font-size: 16px;
+            color: green;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            background: #007bff;
+            border-radius: 5px;
+        }
+
+        .btn-red {
+            background: red;
+        }
+
+        .btn-yellow {
+            background: orange;
+        }
+    </style>
 </head>
 
 <body>
-<div class="header">Admin Jadwal</div>
-<div class="container">
 
-  <!-- Search -->
-  <div class="search-box">
-    <input id="search" placeholder="Cari kegiatan atau tempat..." />
-  </div>
+    <div class="container">
+        <h2>ADMIN — Input Jadwal</h2>
 
-  <!-- Filter Hari + Tempat (filter Hari lengkap Senin–Minggu) -->
-  <div class="filter-group">
-    <select id="filterHari">
-      <option value="">Semua Hari</option>
-      <option>Senin</option>
-      <option>Selasa</option>
-      <option>Rabu</option>
-      <option>Kamis</option>
-      <option>Jumat</option>
-      <option>Sabtu</option>
-      <option>Minggu</option>
-    </select>
+        <label>Tanggal:</label>
+        <input id="f_tanggal" type="date" />
 
-    <select id="filterTempat">
-      <option value="">Semua Tempat</option>
-    </select>
-  </div>
+        <label>Waktu Mulai:</label>
+        <input id="f_mulai" type="time" />
 
-  <div id="list"></div>
-</div>
+        <label>Waktu Selesai:</label>
+        <!-- FIX: tidak pakai type="time" -->
+        <input id="f_selesai" placeholder="Misal: 14:00 atau SELESAI" />
 
-<button class="add-btn" onclick="openAdd()">+</button>
+        <label>Kegiatan:</label>
+        <input id="f_kegiatan" placeholder="Nama kegiatan" />
 
-<!-- Modal Form -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <h2 id="modalTitle">Tambah Jadwal</h2>
+        <label>Tempat:</label>
+        <input id="f_tempat" placeholder="Tempat kegiatan" />
 
-    <select id="f_hari">
-      <option value="">Pilih Hari</option>
-      <option>Senin</option><option>Selasa</option>
-      <option>Rabu</option><option>Kamis</option>
-      <option>Jumat</option><option>Sabtu</option><option>Minggu</option>
-    </select>
+        <button class="btn" onclick="simpanData()">Simpan</button>
 
-    <input id="f_tanggal" type="date" />
-    <input id="f_mulai" type="time" />
-    <input id="f_selesai" type="time" />
-    <input id="f_kegiatan" placeholder="Kegiatan" />
-    <input id="f_tempat" placeholder="Tempat" />
+        <p id="loading"></p>
 
-    <button class="btn-save" onclick="saveData()">Simpan</button>
-    <button class="btn-cancel" onclick="closeModal()">Batal</button>
-  </div>
-</div>
+        <h3>Data Jadwal</h3>
+        <table id="tabelData">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Mulai</th>
+                    <th>Selesai</th>
+                    <th>Kegiatan</th>
+                    <th>Tempat</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec";
+    </div>
 
-let dataRaw = [];
-let editIndex = -1;
+    <script>
+        const scriptURL =
+            "https://script.google.com/macros/s/AKfycbwf3x7v8GVwbaA3X_8_0eRXMLznnvGy7WmMoE7YV68XUSqFhrC2_h356p3qsvaVlQw/exec";
 
-/* ========== UTIL ========== */
+        let editRow = null;
 
-// Format jam universal: menerima '9', '9.00', '9:00', '09:00', returns '09:00'
-function formatWaktuUniversal(val){
-  if(!val && val !== 0) return "";
-  const s = String(val).trim().toLowerCase();
-  if(s === "selesai") return "SELESAI";
-  // replace dot with colon
-  const cleaned = s.replace(".", ":").split(" ")[0];
-  let [h,m] = cleaned.split(":");
-  if(!m) m = "00";
-  h = String(h).padStart(2, "0");
-  m = String(m).padStart(2, "0");
-  return `${h}:${m}`;
-}
+        function loadData() {
+            fetch(scriptURL + "?action=read")
+                .then(res => res.json())
+                .then(json => {
+                    const tbody = document.querySelector("#tabelData tbody");
+                    tbody.innerHTML = "";
 
-// Format tanggal: input '2025-11-28' -> 'JUMAT, 28 NOVEMBER 2025'
-function formatTanggalAllCaps(isoStr){
-  if(!isoStr) return "";
-  const d = new Date(isoStr);
-  if(isNaN(d)) return isoStr.toString().toUpperCase();
-  const hari = d.toLocaleDateString("id-ID",{weekday:"long"}).toUpperCase();
-  const tanggal = String(d.getDate()).padStart(2,"0");
-  const bulan = d.toLocaleDateString("id-ID",{month:"long"}).toUpperCase();
-  const tahun = d.getFullYear();
-  return `${hari}, ${tanggal} ${bulan} ${tahun}`;
-}
+                    json.data.forEach((row, idx) => {
+                        let tr = document.createElement("tr");
 
-/* ========== LOAD DATA ========== */
+                        tr.innerHTML = `
+                            <td>${row.tanggal}</td>
+                            <td>${row.mulai}</td>
+                            <td>${row.selesai}</td>
+                            <td>${row.kegiatan}</td>
+                            <td>${row.tempat}</td>
+                            <td>
+                                <button class="btn-yellow" onclick="editBaris(${idx})">Edit</button>
+                                <button class="btn-red" onclick="hapusBaris(${idx})">Hapus</button>
+                            </td>
+                        `;
 
-async function loadData(){
-  try{
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    dataRaw = data.map(r=>({
-      hari: (r.hari||'').toString(),
-      tanggal: (r.tanggal||'').toString(),
-      waktu_mulai: (r.waktu_mulai||'').toString(),
-      waktu_selesai: (r.waktu_selesai||'').toString(),
-      kegiatan: (r.kegiatan||'').toString(),
-      tempat: (r.tempat||'').toString()
-    }));
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
 
-    // populate tempat filter
-    const tempatSet = new Set();
-    dataRaw.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat); });
-    const tSel = document.getElementById("filterTempat");
-    tSel.innerHTML = '<option value="">Semua Tempat</option>';
-    [...tempatSet].sort().forEach(t=>{
-      const o = document.createElement("option"); o.value=t; o.textContent=t; tSel.appendChild(o);
-    });
+        function formatWaktuUniversal(waktu) {
+            waktu = waktu.trim().toUpperCase();
 
-    render();
-  }catch(err){
-    console.error('Gagal load data', err);
-    document.getElementById("list").innerHTML = '<div style="padding:16px;color:#666">Gagal memuat data. Periksa koneksi atau API.</div>';
-  }
-}
+            if (waktu === "SELESAI") return "SELESAI";
 
-/* ========== RENDER ========== */
+            waktu = waktu.replace(".", ":");
 
-function render(){
-  const q = (document.getElementById("search").value||'').toLowerCase();
-  const fH = document.getElementById("filterHari").value;
-  const fT = document.getElementById("filterTempat").value;
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+            if (/^\d$/.test(waktu)) return `0${waktu}:00`;
+            if (/^\d\d$/.test(waktu)) return `${waktu}:00`;
 
-  const filtered = dataRaw
-    .filter((r)=> {
-      if(fH && r.hari !== fH) return false;
-      if(fT && r.tempat !== fT) return false;
-      const text = ((r.kegiatan||'') + ' ' + (r.tempat||'') + ' ' + (r.hari||'')).toLowerCase();
-      if(q && !text.includes(q)) return false;
-      return true;
-    });
+            if (/^\d:\d\d$/.test(waktu)) return `0${waktu}`;
+            if (/^\d\d:\d$/.test(waktu)) return `${waktu}0`;
 
-  if(filtered.length === 0){
-    list.innerHTML = '<div style="padding:16px;color:#666">Tidak ada jadwal.</div>';
-    return;
-  }
+            if (/^\d\d:\d\d$/.test(waktu)) return waktu;
 
-  filtered.forEach((r,i)=>{
-    const tanggalText = formatTanggalAllCaps(r.tanggal);
-    const mulai = formatWaktuUniversal(r.waktu_mulai);
-    const selesaiRaw = (r.waktu_selesai||'').trim();
-    const selesai = selesaiRaw.toLowerCase()==='selesai' || selesaiRaw==='' ? 'SELESAI' : formatWaktuUniversal(r.waktu_selesai);
+            return waktu;
+        }
 
-    const card = document.createElement("div"); card.className="card";
-    card.innerHTML = `
-      <button class='more-btn' onclick='toggleMenu(${i})'>⋮</button>
-      <div class='menu' id='menu-${i}' style="display:none">
-        <div onclick='editItem(${i})'>Edit</div>
-        <div onclick='deleteItem(${i})' style="color:#e53935">Hapus</div>
-      </div>
+        function simpanData() {
+            let tanggal = document.getElementById("f_tanggal").value;
+            let mulai = document.getElementById("f_mulai").value;
+            let selesai = formatWaktuUniversal(document.getElementById("f_selesai").value);
+            let kegiatan = document.getElementById("f_kegiatan").value;
+            let tempat = document.getElementById("f_tempat").value;
 
-      <div class="card-meta" style="font-weight:700">${tanggalText}</div>
-      <div class="card-meta">${mulai} - ${selesai}</div>
-      <div class="card-title">${String(r.kegiatan || '').toUpperCase()}</div>
-      <div class="card-meta">📍 ${r.tempat || ''}</div>
-    `;
-    list.appendChild(card);
-  });
-}
+            if (!tanggal || !mulai || !selesai || !kegiatan || !tempat) {
+                alert("Semua field wajib diisi!");
+                return;
+            }
 
-/* ========== UI actions ========== */
+            document.getElementById("loading").innerText = "Menyimpan...";
 
-document.getElementById("search").addEventListener('input', render);
-document.getElementById("filterHari").addEventListener('change', render);
-document.getElementById("filterTempat").addEventListener('change', render);
+            let data = {
+                action: editRow === null ? "create" : "update",
+                row: editRow,
+                tanggal,
+                mulai,
+                selesai,
+                kegiatan,
+                tempat
+            };
 
-function toggleMenu(i){
-  // close others
-  document.querySelectorAll('.menu').forEach(m=>m.style.display='none');
-  const m = document.getElementById(`menu-${i}`);
-  if(m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
-}
+            fetch(scriptURL, {
+                method: "POST",
+                body: JSON.stringify(data)
+            })
+                .then(() => {
+                    document.getElementById("loading").innerText = "Tersimpan!";
+                    setTimeout(() => document.getElementById("loading").innerText = "", 1500);
+                    kosongkanForm();
+                    loadData();
+                });
+        }
 
-/* ========== ADD / EDIT / DELETE ========== */
+        function editBaris(i) {
+            fetch(scriptURL + "?action=read")
+                .then(res => res.json())
+                .then(json => {
+                    let row = json.data[i];
+                    editRow = i;
 
-function openAdd(){
-  editIndex = -1;
-  document.getElementById('modalTitle').innerText = 'Tambah Jadwal';
-  document.getElementById('f_hari').value = '';
-  document.getElementById('f_tanggal').value = '';
-  document.getElementById('f_mulai').value = '';
-  document.getElementById('f_selesai').value = '';
-  document.getElementById('f_kegiatan').value = '';
-  document.getElementById('f_tempat').value = '';
-  document.getElementById('modalBg').style.display = 'flex';
-}
+                    document.getElementById("f_tanggal").value = row.tanggal;
+                    document.getElementById("f_mulai").value = row.mulai === "SELESAI" ? "" : row.mulai;
+                    document.getElementById("f_selesai").value = row.selesai;
+                    document.getElementById("f_kegiatan").value = row.kegiatan;
+                    document.getElementById("f_tempat").value = row.tempat;
+                });
+        }
 
-function closeModal(){ document.getElementById('modalBg').style.display='none'; }
+        function hapusBaris(i) {
+            if (!confirm("Hapus data ini?")) return;
 
-function editItem(i){
-  editIndex = i;
-  const r = dataRaw[i];
-  document.getElementById('modalTitle').innerText = 'Edit Jadwal';
-  document.getElementById('f_hari').value = r.hari || '';
-  // try to set date in yyyy-mm-dd if possible
-  try{
-    const d = new Date(r.tanggal);
-    if(!isNaN(d)){
-      const yyyy = d.getFullYear(); const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0');
-      document.getElementById('f_tanggal').value = `${yyyy}-${mm}-${dd}`;
-    } else {
-      document.getElementById('f_tanggal').value = '';
-    }
-  }catch(e){ document.getElementById('f_tanggal').value = ''; }
+            fetch(scriptURL, {
+                method: "POST",
+                body: JSON.stringify({ action: "delete", row: i })
+            }).then(() => loadData());
+        }
 
-  document.getElementById('f_mulai').value = formatWaktuUniversal(r.waktu_mulai);
-  document.getElementById('f_selesai').value = r.waktu_selesai && r.waktu_selesai.toLowerCase()==='selesai' ? '' : formatWaktuUniversal(r.waktu_selesai);
-  document.getElementById('f_kegiatan').value = r.kegiatan || '';
-  document.getElementById('f_tempat').value = r.tempat || '';
-  document.getElementById('modalBg').style.display = 'flex';
-}
+        function kosongkanForm() {
+            editRow = null;
+            document.querySelectorAll("input").forEach(i => i.value = "");
+        }
 
-async function saveData(){
-  const payload = {
-    hari: document.getElementById('f_hari').value,
-    tanggal: document.getElementById('f_tanggal').value,
-    waktu_mulai: document.getElementById('f_mulai').value,
-    waktu_selesai: document.getElementById('f_selesai').value || 'SELESAI',
-    kegiatan: document.getElementById('f_kegiatan').value,
-    tempat: document.getElementById('f_tempat').value
-  };
-
-  try{
-    if(editIndex === -1){
-      const params = new URLSearchParams(payload); params.append('action','add');
-      await fetch(API_URL + '?' + params.toString());
-    } else {
-      const params = new URLSearchParams(payload); params.append('action','edit'); params.append('row', String(editIndex+2));
-      await fetch(API_URL + '?' + params.toString());
-    }
-    closeModal();
-    await loadData();
-  }catch(err){
-    alert('Gagal menyimpan: ' + err.message);
-  }
-}
-
-async function deleteItem(i){
-  if(!confirm('Yakin ingin menghapus jadwal ini?')) return;
-  const row = i+2;
-  try{
-    const params = new URLSearchParams(); params.append('action','delete'); params.append('row', String(row));
-    await fetch(API_URL + '?' + params.toString());
-    await loadData();
-  }catch(err){
-    alert('Gagal hapus: ' + err.message);
-  }
-}
-
-/* INIT */
-loadData();
-</script>
+        loadData();
+    </script>
 
 </body>
+
 </html>
