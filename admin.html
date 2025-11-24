@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin - Jadwal FEB USU</title>
+<style>
+  :root{--primary:#1976d2;--danger:#e53935;--bg:#f5f7fa;--card:#fff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter, 'Segoe UI', Roboto, Arial;background:var(--bg);color:#111}
+  .header{height:64px;background:var(--primary);color:#fff;display:flex;align-items:center;padding:0 16px;font-weight:700}
+  .container{padding:12px}
+
+  .search-box{padding:10px}
+  .search-input{width:100%;padding:12px 16px;border-radius:28px;border:none;background:#eef3f8;font-size:16px}
+
+  .filters{display:flex;gap:8px;padding:8px}
+  .filters select{flex:1;padding:10px;border-radius:12px;border:none;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+
+  .list{padding-bottom:120px}
+  .card{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:14px;background:var(--card);border-radius:12px;margin:10px 0;box-shadow:0 6px 12px rgba(14,30,37,0.06)}
+  .info{flex:1}
+  .hari{font-weight:700;margin-bottom:6px}
+  .keg{font-weight:700;font-size:16px;margin-bottom:6px}
+  .meta{color:#555;font-size:14px}
+
+  .menu-btn{background:none;border:none;font-size:20px;padding:6px 8px;border-radius:8px;cursor:pointer}
+
+  /* small popup menu */
+  .menu{position:absolute;background:#fff;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.12);padding:6px;z-index:40}
+  .menu button{display:block;width:100%;padding:8px 12px;border:none;background:transparent;text-align:left;border-radius:6px;cursor:pointer}
+  .menu button:hover{background:#f1f4f8}
+
+  /* FAB */
+  .fab{position:fixed;right:18px;bottom:22px;width:60px;height:60px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:30px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(25,118,210,0.24);z-index:30}
+
+  /* modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal{width:94%;max-width:520px;background:#fff;border-radius:12px;padding:16px}
+  .modal h3{margin:0 0 12px}
+  .field{margin-bottom:10px}
+  .field label{display:block;font-size:13px;color:#333;margin-bottom:6px}
+  .field input,.field select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef6;font-size:15px}
+  .row{display:flex;gap:8px}
+  .btn{padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.ghost{background:#f1f4f8}
+  .small{font-size:13px}
+
+  .hint{color:#666;font-size:13px;margin-top:6px}
+
+  /* responsive */
+  @media(min-width:720px){.container{max-width:720px;margin:0 auto}}
+</style>
+</head>
+<body>
+  <div class="header">Admin Jadwal FEB USU</div>
+  <div class="container">
+    <div class="search-box"><input id="search" class="search-input" placeholder="Cari kegiatan, tempat, atau hari..."/></div>
+    <div class="filters">
+      <select id="filterHari"><option value="">Filter: Semua Hari</option></select>
+      <select id="filterTempat"><option value="">Filter: Semua Tempat</option></select>
+    </div>
+
+    <div id="list" class="list"></div>
+    <div id="empty" style="color:#666;padding:18px;display:none">Tidak ada jadwal.</div>
+  </div>
+
+  <button id="fab" class="fab">+</button>
+
+  <!-- modal backdrop -->
+  <div id="backdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle">Tambah Jadwal</h3>
+      <div class="field">
+        <label>Hari</label>
+        <select id="m_hari">
+          <option>SENIN</option><option>SELASA</option><option>RABU</option><option>KAMIS</option><option>JUMAT</option><option>SABTU</option><option>MINGGU</option>
+        </select>
+      </div>
+      <div class="field"><label>Tanggal</label><input id="m_tanggal" type="date"/></div>
+      <div class="row">
+        <div class="field" style="flex:1"><label>Waktu Mulai</label><input id="m_mulai" type="text" placeholder="08.00"/></div>
+        <div class="field" style="flex:1"><label>Waktu Selesai</label><input id="m_selesai" type="text" placeholder="Selesai"/></div>
+      </div>
+      <div class="field"><label>Kegiatan</label><input id="m_kegiatan" type="text"/></div>
+      <div class="field"><label>Tempat</label><input id="m_tempat" type="text"/></div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+        <button id="btnCancel" class="btn ghost small">Batal</button>
+        <button id="btnSave" class="btn primary small">Simpan</button>
+      </div>
+
+      <div id="modalHint" class="hint">Data disimpan langsung ke Google Spreadsheet melalui API.</div>
+    </div>
+  </div>
+
+<script>
+// CONFIG: ganti API_URL jika perlu
+const API_URL = 'https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec';
+
+// util
+const DAYS = ['SENIN','SELASA','RABU','KAMIS','JUMAT','SABTU','MINGGU'];
+function q(sel){return document.querySelector(sel)}
+
+let rawData = []; // array of objects from API
+
+const elList = q('#list');
+const elEmpty = q('#empty');
+const searchEl = q('#search');
+const filterHari = q('#filterHari');
+const filterTempat = q('#filterTempat');
+
+// modal elements
+const backdrop = q('#backdrop');
+const modalTitle = q('#modalTitle');
+const m_hari = q('#m_hari');
+const m_tanggal = q('#m_tanggal');
+const m_mulai = q('#m_mulai');
+const m_selesai = q('#m_selesai');
+const m_kegiatan = q('#m_kegiatan');
+const m_tempat = q('#m_tempat');
+const btnSave = q('#btnSave');
+const btnCancel = q('#btnCancel');
+const fab = q('#fab');
+
+let editRow = null; // when editing, store spreadsheet row number
+
+// load data
+async function loadData(){
+  elList.innerHTML = '';
+  elEmpty.style.display='none';
+  try{
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    // map and normalize
+    rawData = data.map(r=>({
+      hari: (r.hari||'').toString(),
+      tanggal: (r.tanggal||'').toString(),
+      waktu_mulai: (r.waktu_mulai||'').toString(),
+      waktu_selesai: (r.waktu_selesai||'').toString(),
+      kegiatan: (r.kegiatan||'').toString(),
+      tempat: (r.tempat||'').toString()
+    }));
+    renderFilters();
+    renderList();
+  }catch(err){
+    console.error('Gagal load', err);
+    elEmpty.textContent = 'Gagal memuat data. Periksa koneksi atau API.'; elEmpty.style.display='block';
+  }
+}
+
+function renderFilters(){
+  // hari = full list always
+  filterHari.innerHTML = '<option value="">Filter: Semua Hari</option>' + DAYS.map(d=>`<option value="${d}">${d}</option>`).join('');
+  // tempat from data
+  const tempatSet = new Set(); rawData.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat);});
+  filterTempat.innerHTML = '<option value="">Filter: Semua Tempat</option>' + [...tempatSet].sort().map(t=>`<option value="${t}">${t}</option>`).join('');
+}
+
+function formatDateForDisplay(dateStr){
+  if(!dateStr) return '';
+  // try parse ISO or yyyy-mm-dd
+  const d = new Date(dateStr);
+  if(!isNaN(d)){
+    const opts = {day:'numeric', month:'long', year:'numeric'};
+    return d.toLocaleDateString('id-ID', opts);
+  }
+  return dateStr;
+}
+
+function renderList(){
+  const qv = (searchEl.value||'').toLowerCase();
+  const fh = filterHari.value;
+  const ft = filterTempat.value;
+
+  const filtered = rawData.map((r,i)=>({
+    ...r, _rowIndex: i + 2 // spreadsheet row = index + 2 (header is row 1)
+  })).filter(r=>{
+    if(fh && r.hari.toUpperCase() !== fh.toUpperCase()) return false;
+    if(ft && r.tempat !== ft) return false;
+    if(!qv) return true;
+    return (r.kegiatan||'').toLowerCase().includes(qv) || (r.tempat||'').toLowerCase().includes(qv) || (r.hari||'').toLowerCase().includes(qv);
+  });
+
+  if(filtered.length===0){ elEmpty.textContent='Tidak ada jadwal.'; elEmpty.style.display='block'; elList.innerHTML=''; return }
+
+  elList.innerHTML='';
+  filtered.forEach(r=>{
+    const card = document.createElement('div'); card.className='card';
+    const info = document.createElement('div'); info.className='info';
+    const hari = document.createElement('div'); hari.className='hari'; hari.textContent = r.hari + ' — ' + formatDateForDisplay(r.tanggal);
+    const keg = document.createElement('div'); keg.className='keg'; keg.textContent = r.kegiatan;
+    const meta = document.createElement('div'); meta.className='meta'; meta.textContent = (r.waktu_mulai||'') + ' - ' + (r.waktu_selesai||'') + ' • ' + (r.tempat||'');
+    info.appendChild(hari); info.appendChild(keg); info.appendChild(meta);
+
+    const btn = document.createElement('button'); btn.className='menu-btn'; btn.innerHTML='⋮';
+    btn.addEventListener('click', ev=>{ openMenu(ev.currentTarget, r); });
+
+    card.appendChild(info); card.appendChild(btn);
+    elList.appendChild(card);
+  });
+}
+
+// small context menu
+function openMenu(anchor, rowData){
+  closeMenus();
+  const rect = anchor.getBoundingClientRect();
+  const menu = document.createElement('div'); menu.className='menu';
+  menu.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+  menu.style.left = (rect.left + window.scrollX - 120) + 'px';
+
+  const btnEdit = document.createElement('button'); btnEdit.textContent = 'Edit'; btnEdit.addEventListener('click', ()=>{ closeMenus(); openEdit(rowData); });
+  const btnDel = document.createElement('button'); btnDel.textContent = 'Hapus'; btnDel.style.color = 'var(--danger)'; btnDel.addEventListener('click', ()=>{ closeMenus(); confirmDelete(rowData); });
+  menu.appendChild(btnEdit); menu.appendChild(btnDel);
+  document.body.appendChild(menu);
+}
+function closeMenus(){ document.querySelectorAll('.menu').forEach(n=>n.remove()); }
+window.addEventListener('scroll', closeMenus);
+window.addEventListener('click', (e)=>{ if(!e.target.closest('.menu-btn') && !e.target.closest('.menu')) closeMenus(); });
+
+// open modal for add
+fab.addEventListener('click', ()=>{ openAdd(); });
+function openAdd(){ editRow = null; modalTitle.textContent='Tambah Jadwal';
+  m_hari.value='SENIN'; m_tanggal.value=''; m_mulai.value=''; m_selesai.value=''; m_kegiatan.value=''; m_tempat.value='';
+  backdrop.style.display='flex';
+}
+// open modal for edit
+function openEdit(rowData){ editRow = rowData._rowIndex; modalTitle.textContent='Edit Jadwal';
+  m_hari.value = rowData.hari || 'SENIN';
+  // tanggal might be ISO or localized; try to convert to yyyy-mm-dd for input
+  try{
+    const d = new Date(rowData.tanggal);
+    if(!isNaN(d)){
+      const yyyy = d.getFullYear(); const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0');
+      m_tanggal.value = `${yyyy}-${mm}-${dd}`;
+    } else { m_tanggal.value = '' }
+  }catch(e){ m_tanggal.value = '' }
+  m_mulai.value = rowData.waktu_mulai || '';
+  m_selesai.value = rowData.waktu_selesai || '';
+  m_kegiatan.value = rowData.kegiatan || '';
+  m_tempat.value = rowData.tempat || '';
+  backdrop.style.display='flex';
+}
+
+btnCancel.addEventListener('click', ()=>{ backdrop.style.display='none'; });
+
+// save (add or edit)
+btnSave.addEventListener('click', async ()=>{
+  const payload = {
+    hari: m_hari.value,
+    tanggal: m_tanggal.value,
+    waktu_mulai: m_mulai.value,
+    waktu_selesai: m_selesai.value,
+    kegiatan: m_kegiatan.value,
+    tempat: m_tempat.value
+  };
+  btnSave.disabled = true; btnSave.textContent = 'Menyimpan...';
+  try{
+    if(editRow){
+      // edit
+      const params = new URLSearchParams(payload);
+      params.append('action','edit');
+      params.append('row', String(editRow));
+      const res = await fetch(API_URL + '?' + params.toString());
+      const text = await res.text();
+      // expected OK
+    } else {
+      // add
+      const params = new URLSearchParams(payload);
+      params.append('action','add');
+      const res = await fetch(API_URL + '?' + params.toString());
+      const text = await res.text();
+    }
+    backdrop.style.display='none';
+    await loadData();
+  }catch(err){
+    alert('Gagal menyimpan: ' + err.message);
+  }finally{ btnSave.disabled=false; btnSave.textContent='Simpan'; }
+});
+
+// delete
+function confirmDelete(rowData){
+  if(!confirm('Yakin ingin menghapus jadwal ini?')) return;
+  doDelete(rowData._rowIndex);
+}
+async function doDelete(row){
+  try{
+    const params = new URLSearchParams(); params.append('action','delete'); params.append('row', String(row));
+    const res = await fetch(API_URL + '?' + params.toString());
+    const txt = await res.text();
+    await loadData();
+  }catch(err){ alert('Gagal hapus: ' + err.message); }
+}
+
+// events
+searchEl.addEventListener('input', renderList);
+filterHari.addEventListener('change', renderList);
+filterTempat.addEventListener('change', renderList);
+
+// initial
+loadData();
+</script>
+</body>
+</html>
