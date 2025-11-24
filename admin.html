@@ -101,7 +101,7 @@ input,select{
     <input id="search" placeholder="Cari kegiatan atau tempat..." />
   </div>
 
-  <!-- Filter Hari + Tempat (filter Hari lengkap Senin–Minggu) -->
+  <!-- Filter Hari + Tempat -->
   <div class="filter-group">
     <select id="filterHari">
       <option value="">Semua Hari</option>
@@ -138,9 +138,9 @@ input,select{
 
     <input id="f_tanggal" type="date" />
     <input id="f_mulai" type="time" />
-    <!-- ===== FIX: gunakan input text agar bisa ketik 'SELESAI' juga ===== -->
-    <input id="f_selesai" placeholder="Waktu selesai (contoh: 14:00 atau SELESAI)" />
-    <div class="small-note">Masukkan format waktu seperti <code>14:00</code> atau ketik <code>SELESAI</code></div>
+
+    <input id="f_selesai" placeholder="Waktu selesai (misal: 14:00 atau SELESAI)" />
+    <div class="small-note">Kosongkan bila selesai = SELESAI</div>
 
     <input id="f_kegiatan" placeholder="Kegiatan" />
     <input id="f_tempat" placeholder="Tempat" />
@@ -151,92 +151,77 @@ input,select{
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec";
+/* ====== GANTI LINK API-MU DI SINI ====== */
+const API_URL = "https://script.google.com/macros/s/AKfycbzoT6zijm95CM5JRPdAMVJM0MKQoLi0pxJ9V1vGlN79VWl6uf8eFbjTztIYpUCQJWtptw/exec";
 
 let dataRaw = [];
 let editIndex = -1;
 
-/* ========== UTIL ========== */
-
-// Format jam universal: menerima '9', '9.00', '9:00', '09:00', 'SELESAI' -> returns '09:00' or 'SELESAI'
+/* ====== FORMAT WAKTU UNIVERSAL ====== */
 function formatWaktuUniversal(val){
-  if(val === null || val === undefined) return "";
+  if(!val) return "";
   const s = String(val).trim();
-  if(s === "") return "";
   if(s.toLowerCase() === "selesai") return "SELESAI";
-  // replace dot with colon and remove spaces
-  const cleaned = s.replace(".", ":").split(" ")[0];
+  const cleaned = s.replace(".", ":");
   let [h,m] = cleaned.split(":");
-  if(!m) m = "00";
-  // if h is non-numeric, return original uppercased to be safe
-  if(isNaN(Number(h)) || isNaN(Number(m))){
-    return s.toUpperCase();
-  }
-  h = String(h).padStart(2, "0");
-  m = String(m).padStart(2, "0");
-  return `${h}:${m}`;
+  if(!m) m="00";
+  return `${h.padStart(2,"0")}:${m.padStart(2,"0")}`;
 }
 
-// Format tanggal: input '2025-11-28' -> 'JUMAT, 28 NOVEMBER 2025'
-function formatTanggalAllCaps(isoStr){
-  if(!isoStr) return "";
-  const d = new Date(isoStr);
-  if(isNaN(d)) return isoStr.toString().toUpperCase();
+/* ====== FORMAT TANGGAL ====== */
+function formatTanggalAllCaps(iso){
+  if(!iso) return "";
+  const d = new Date(iso);
+  if(isNaN(d)) return iso.toUpperCase();
   const hari = d.toLocaleDateString("id-ID",{weekday:"long"}).toUpperCase();
   const tanggal = String(d.getDate()).padStart(2,"0");
   const bulan = d.toLocaleDateString("id-ID",{month:"long"}).toUpperCase();
-  const tahun = d.getFullYear();
-  return `${hari}, ${tanggal} ${bulan} ${tahun}`;
+  return `${hari}, ${tanggal} ${bulan} ${d.getFullYear()}`;
 }
 
-/* ========== LOAD DATA ========== */
-
+/* ====== LOAD DATA ====== */
 async function loadData(){
-  try{
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    dataRaw = data.map(r=>({
-      hari: (r.hari||'').toString(),
-      tanggal: (r.tanggal||'').toString(),
-      waktu_mulai: (r.waktu_mulai||'').toString(),
-      waktu_selesai: (r.waktu_selesai||'').toString(),
-      kegiatan: (r.kegiatan||'').toString(),
-      tempat: (r.tempat||'').toString()
-    }));
+  const res = await fetch(API_URL);
+  const data = await res.json();
 
-    // populate tempat filter
-    const tempatSet = new Set();
-    dataRaw.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat); });
-    const tSel = document.getElementById("filterTempat");
-    tSel.innerHTML = '<option value="">Semua Tempat</option>';
-    [...tempatSet].sort().forEach(t=>{
-      const o = document.createElement("option"); o.value=t; o.textContent=t; tSel.appendChild(o);
-    });
+  dataRaw = data.map(r=>({
+    hari: r.hari,
+    tanggal: r.tanggal,
+    waktu_mulai: r.waktu_mulai,
+    waktu_selesai: r.waktu_selesai,
+    kegiatan: r.kegiatan,
+    tempat: r.tempat
+  }));
 
-    render();
-  }catch(err){
-    console.error('Gagal load data', err);
-    document.getElementById("list").innerHTML = '<div style="padding:16px;color:#666">Gagal memuat data. Periksa koneksi atau API.</div>';
-  }
+  // filter tempat
+  const tempatSet = new Set();
+  dataRaw.forEach(r=>r.tempat && tempatSet.add(r.tempat));
+  const sel = document.getElementById("filterTempat");
+  sel.innerHTML = '<option value="">Semua Tempat</option>';
+  [...tempatSet].forEach(t=>{
+    const o = document.createElement("option"); o.value=t; o.textContent=t;
+    sel.appendChild(o);
+  });
+
+  render();
 }
 
-/* ========== RENDER ========== */
-
+/* ====== RENDER ====== */
 function render(){
-  const q = (document.getElementById("search").value||'').toLowerCase();
+  const q = document.getElementById("search").value.toLowerCase();
   const fH = document.getElementById("filterHari").value;
   const fT = document.getElementById("filterTempat").value;
+
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  const filtered = dataRaw
-    .filter((r)=> {
-      if(fH && r.hari !== fH) return false;
-      if(fT && r.tempat !== fT) return false;
-      const text = ((r.kegiatan||'') + ' ' + (r.tempat||'') + ' ' + (r.hari||'')).toLowerCase();
-      if(q && !text.includes(q)) return false;
-      return true;
-    });
+  const filtered = dataRaw.filter(r=>{
+    if(fH && r.hari !== fH) return false;
+    if(fT && r.tempat !== fT) return false;
+    const text = (r.kegiatan+" "+r.tempat+" "+r.hari).toLowerCase();
+    if(q && !text.includes(q)) return false;
+    return true;
+  });
 
   if(filtered.length === 0){
     list.innerHTML = '<div style="padding:16px;color:#666">Tidak ada jadwal.</div>';
@@ -244,120 +229,111 @@ function render(){
   }
 
   filtered.forEach((r,i)=>{
-    const tanggalText = formatTanggalAllCaps(r.tanggal);
+    const tanggal = formatTanggalAllCaps(r.tanggal);
     const mulai = formatWaktuUniversal(r.waktu_mulai);
-    const selesaiRaw = (r.waktu_selesai||'').trim();
-    const selesai = (selesaiRaw.toLowerCase()==='selesai' || selesaiRaw==='') ? 'SELESAI' : formatWaktuUniversal(r.waktu_selesai);
+    const selesai = formatWaktuUniversal(r.waktu_selesai);
 
-    const card = document.createElement("div"); card.className="card";
+    const card = document.createElement("div");
+    card.className="card";
     card.innerHTML = `
-      <button class='more-btn' onclick='toggleMenu(${i})'>⋮</button>
-      <div class='menu' id='menu-${i}' style="display:none">
-        <div onclick='editItem(${i})'>Edit</div>
-        <div onclick='deleteItem(${i})' style="color:#e53935">Hapus</div>
+      <button class="more-btn" onclick="toggleMenu(${i})">⋮</button>
+      <div class="menu" id="menu-${i}">
+        <div onclick="editItem(${i})">Edit</div>
+        <div onclick="deleteItem(${i})" style="color:#e53935">Hapus</div>
       </div>
 
-      <div class="card-meta" style="font-weight:700">${tanggalText}</div>
+      <div class="card-meta" style="font-weight:700">${tanggal}</div>
       <div class="card-meta">${mulai} - ${selesai}</div>
-      <div class="card-title">${String(r.kegiatan || '').toUpperCase()}</div>
-      <div class="card-meta">📍 ${r.tempat || ''}</div>
+      <div class="card-title">${r.kegiatan.toUpperCase()}</div>
+      <div class="card-meta">📍 ${r.tempat}</div>
     `;
     list.appendChild(card);
   });
 }
 
-/* ========== UI actions ========== */
-
 document.getElementById("search").addEventListener('input', render);
 document.getElementById("filterHari").addEventListener('change', render);
 document.getElementById("filterTempat").addEventListener('change', render);
 
+/* ====== MENU ====== */
 function toggleMenu(i){
-  // close others
   document.querySelectorAll('.menu').forEach(m=>m.style.display='none');
   const m = document.getElementById(`menu-${i}`);
-  if(m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+  if(m) m.style.display = m.style.display==='block' ? 'none' : 'block';
 }
 
-/* ========== ADD / EDIT / DELETE ========== */
-
+/* ====== ADD / EDIT ====== */
 function openAdd(){
   editIndex = -1;
-  document.getElementById('modalTitle').innerText = 'Tambah Jadwal';
-  document.getElementById('f_hari').value = '';
-  document.getElementById('f_tanggal').value = '';
-  document.getElementById('f_mulai').value = '';
-  document.getElementById('f_selesai').value = '';
-  document.getElementById('f_kegiatan').value = '';
-  document.getElementById('f_tempat').value = '';
-  document.getElementById('modalBg').style.display = 'flex';
+  document.getElementById('modalTitle').innerText = "Tambah Jadwal";
+  document.getElementById('f_hari').value="";
+  document.getElementById('f_tanggal').value="";
+  document.getElementById('f_mulai').value="";
+  document.getElementById('f_selesai').value="";
+  document.getElementById('f_kegiatan').value="";
+  document.getElementById('f_tempat').value="";
+  document.getElementById('modalBg').style.display="flex";
 }
 
-function closeModal(){ document.getElementById('modalBg').style.display='none'; }
+function closeModal(){
+  document.getElementById('modalBg').style.display="none";
+}
 
 function editItem(i){
   editIndex = i;
   const r = dataRaw[i];
-  document.getElementById('modalTitle').innerText = 'Edit Jadwal';
-  document.getElementById('f_hari').value = r.hari || '';
-  // try to set date in yyyy-mm-dd if possible
-  try{
-    const d = new Date(r.tanggal);
-    if(!isNaN(d)){
-      const yyyy = d.getFullYear(); const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0');
-      document.getElementById('f_tanggal').value = `${yyyy}-${mm}-${dd}`;
-    } else {
-      document.getElementById('f_tanggal').value = '';
-    }
-  }catch(e){ document.getElementById('f_tanggal').value = ''; }
+  document.getElementById('modalTitle').innerText="Edit Jadwal";
+  document.getElementById('f_hari').value=r.hari;
+
+  const d = new Date(r.tanggal);
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  document.getElementById('f_tanggal').value = `${y}-${m}-${dd}`;
 
   document.getElementById('f_mulai').value = formatWaktuUniversal(r.waktu_mulai);
-  // jika sumber 'SELESAI' -> kosongkan field supaya user bisa ketik SELESAI sendiri
-  document.getElementById('f_selesai').value = r.waktu_selesai && r.waktu_selesai.toLowerCase()==='selesai' ? '' : formatWaktuUniversal(r.waktu_selesai);
-  document.getElementById('f_kegiatan').value = r.kegiatan || '';
-  document.getElementById('f_tempat').value = r.tempat || '';
-  document.getElementById('modalBg').style.display = 'flex';
+  document.getElementById('f_selesai').value = (r.waktu_selesai==="SELESAI") ? "" : formatWaktuUniversal(r.waktu_selesai);
+  document.getElementById('f_kegiatan').value=r.kegiatan;
+  document.getElementById('f_tempat').value=r.tempat;
+
+  document.getElementById('modalBg').style.display="flex";
 }
 
+/* ====== SAVE ====== */
 async function saveData(){
-  // ambil raw value (bisa kosong)
-  const rawSelesai = (document.getElementById('f_selesai').value || '').toString().trim();
-
+  const rawSelesai = document.getElementById('f_selesai').value.trim();
   const payload = {
     hari: document.getElementById('f_hari').value,
     tanggal: document.getElementById('f_tanggal').value,
     waktu_mulai: document.getElementById('f_mulai').value,
-    // kalau kosong -> anggap SELESAI, jika user ketik 'SELESAI' juga akan dipassing
-    waktu_selesai: rawSelesai === '' ? 'SELESAI' : rawSelesai,
+    waktu_selesai: rawSelesai==="" ? "SELESAI" : rawSelesai,
     kegiatan: document.getElementById('f_kegiatan').value,
     tempat: document.getElementById('f_tempat').value
   };
 
-  try{
-    if(editIndex === -1){
-      const params = new URLSearchParams(payload); params.append('action','add');
-      await fetch(API_URL + '?' + params.toString());
-    } else {
-      const params = new URLSearchParams(payload); params.append('action','edit'); params.append('row', String(editIndex+2));
-      await fetch(API_URL + '?' + params.toString());
-    }
-    closeModal();
-    await loadData();
-  }catch(err){
-    alert('Gagal menyimpan: ' + err.message);
+  const params = new URLSearchParams(payload);
+
+  if(editIndex === -1){
+    params.append("action","add");
+  } else {
+    params.append("action","edit");
+    params.append("row", editIndex+2);
   }
+
+  await fetch(API_URL + "?" + params.toString());
+
+  closeModal();
+  loadData();
 }
 
+/* ====== DELETE ====== */
 async function deleteItem(i){
-  if(!confirm('Yakin ingin menghapus jadwal ini?')) return;
-  const row = i+2;
-  try{
-    const params = new URLSearchParams(); params.append('action','delete'); params.append('row', String(row));
-    await fetch(API_URL + '?' + params.toString());
-    await loadData();
-  }catch(err){
-    alert('Gagal hapus: ' + err.message);
-  }
+  if(!confirm("Yakin ingin menghapus jadwal ini?")) return;
+  const params = new URLSearchParams();
+  params.append("action","delete");
+  params.append("row", i+2);
+  await fetch(API_URL + "?" + params.toString());
+  loadData();
 }
 
 /* INIT */
