@@ -1,176 +1,133 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jadwal Kegiatan</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jadwal Kegiatan FEB USU</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        padding: 15px;
-    }
-    .filter-box {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-    .filter-box select,
-    .filter-box input {
-        padding: 10px;
-        font-size: 15px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        flex: 1;
-    }
-    .card {
-        background: white;
-        padding: 15px;
-        margin-bottom: 12px;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    }
-    .date {
-        font-weight: bold;
-        font-size: 17px;
-        margin-bottom: 5px;
-    }
-    .time {
-        font-size: 15px;
-        margin-bottom: 6px;
-        color: #444;
-    }
-    .title {
-        font-size: 16px;
-        font-weight: bold;
-        margin-bottom: 3px;
-    }
-    .place {
-        font-size: 14px;
-        color: #555;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 4px;
-    }
+:root{
+  --primary:#3742fa;
+  --bg1:#0ab6ff;
+  --bg2:#0077ff;
+  --card:#ffffff;
+  --radius:18px;
+  font-family:'Segoe UI',Arial;
+}
+body{margin:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));min-height:100vh;color:#fff;}
+.header{
+  padding:18px;text-align:center;font-size:22px;font-weight:700;
+  background:rgba(0,0,0,0.25);
+}
+.container{padding:16px;}
+.search{
+  background:#fff;color:#000;padding:10px 14px;border-radius:16px;
+  margin-bottom:12px;font-size:16px;border:none;width:100%;
+}
+select{
+  width:100%;padding:12px;border:none;border-radius:14px;margin-bottom:12px;font-size:16px;
+}
+.card{
+  background:#fff;color:#000;border-radius:16px;padding:16px;margin-bottom:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+.card .tgl{font-weight:700;margin-bottom:6px;font-size:17px;}
+.card .jam{font-size:15px;margin-bottom:4px;}
+.card .title{font-weight:800;margin:6px 0;font-size:18px;}
+.card .tempat{font-size:15px;}
 </style>
 </head>
 <body>
+<div class="header">Jadwal Kegiatan FEB USU</div>
 
-<h2>Jadwal Kegiatan</h2>
+<div class="container">
+  <input id="search" class="search" placeholder="Cari kegiatan, ruangan, atau hari..." />
 
-<div class="filter-box">
-    <input type="text" id="searchInput" placeholder="Cari kegiatan…">
+  <select id="filterHari">
+    <option value="">Filter: Semua Hari</option>
+    <option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option>
+    <option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+  </select>
 
-    <select id="filterHari">
-        <option value="">Semua Hari</option>
-        <option value="Senin">Senin</option>
-        <option value="Selasa">Selasa</option>
-        <option value="Rabu">Rabu</option>
-        <option value="Kamis">Kamis</option>
-        <option value="Jumat">Jumat</option>
-        <option value="Sabtu">Sabtu</option>
-        <option value="Minggu">Minggu</option>
-    </select>
+  <select id="filterTempat">
+    <option value="">Filter: Semua Tempat</option>
+  </select>
+
+  <div id="list"></div>
 </div>
 
-<div id="listJadwal">Memuat jadwal...</div>
-
 <script>
-const url = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec";
+let dataRaw=[];
 
-document.addEventListener("DOMContentLoaded", loadData);
-document.getElementById("filterHari").addEventListener("change", loadData);
-document.getElementById("searchInput").addEventListener("input", loadData);
-
-// Format tanggal Indonesia
-function formatTanggal(dateString) {
-    const bulanIndo = [
-        "Januari","Februari","Maret","April","Mei","Juni",
-        "Juli","Agustus","September","Oktober","November","Desember"
-    ];
-
-    const hariIndo = [
-        "MINGGU","SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU"
-    ];
-
-    let d = new Date(dateString + "T00:00:00");
-
-    if (isNaN(d)) return dateString; // fallback
-
-    let hari = hariIndo[d.getDay()];
-    let tgl = d.getDate();
-    let bln = bulanIndo[d.getMonth()].toUpperCase();
-    let thn = d.getFullYear();
-
-    return `${hari}, ${tgl} ${bln} ${thn}`;
+function formatWaktu(val){
+  if(!val) return "";
+  if(val.toLowerCase()==="selesai") return "SELESAI";
+  let s = val.replace('.',':');
+  let [h,m] = s.split(":");
+  if(!m) m="00";
+  return h.padStart(2,"0")+":"+m.padStart(2,"0");
 }
 
-// Format jam  →  09:00
-function formatJam(jam) {
-    if (!jam || jam.trim() === "") return "";
-    let parts = jam.split(":");
-    let h = parts[0].padStart(2, "0");
-    let m = parts[1] ? parts[1].padStart(2, "0") : "00";
-    return `${h}:${m}`;
+function formatTanggal(iso){
+  const d=new Date(iso);
+  if(isNaN(d)) return iso;
+  const hari=d.toLocaleDateString("id-ID",{weekday:"long"}).toUpperCase();
+  const t=String(d.getDate()).padStart(2,"0");
+  const bln=d.toLocaleDateString("id-ID",{month:"long"}).toUpperCase();
+  const y=d.getFullYear();
+  return `${hari}, ${t} ${bln} ${y}`;
 }
 
-async function loadData() {
-    const list = document.getElementById("listJadwal");
-    list.innerHTML = "Memuat...";
+async function loadData(){
+  const res=await fetch(API_URL);
+  const data=await res.json();
+  dataRaw=data;
 
-    try {
-        let res = await fetch(url);
-        let data = await res.json();
+  const tempatSet=new Set();
+  data.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat); });
+  const sel=document.getElementById("filterTempat");
+  sel.innerHTML='<option value="">Filter: Semua Tempat</option>';
+  [...tempatSet].sort().forEach(t=>{
+    const o=document.createElement("option");o.value=t;o.textContent=t;sel.appendChild(o);
+  });
 
-        const filterHari = document.getElementById("filterHari").value.toLowerCase();
-        const searchText = document.getElementById("searchInput").value.toLowerCase();
-
-        let html = "";
-
-        data.forEach(row => {
-
-            let hari = row.hari || "";
-            let tanggal = row.tanggal || "";
-            let mulai = row.waktu_mulai || "";
-            let selesai = row.waktu_selesai || "";
-            let kegiatan = row.kegiatan || "";
-            let tempat = row.tempat || "";
-
-            // FILTER HARI
-            if (filterHari && hari.toLowerCase() !== filterHari) return;
-
-            // FILTER SEARCH
-            if (searchText && !kegiatan.toLowerCase().includes(searchText)) return;
-
-            // FORMAT TAMPILAN
-            let tampilTanggal = formatTanggal(tanggal);
-            let jamMulai = formatJam(mulai);
-
-            let jamSelesai = selesai.trim() === "" 
-                ? "SELESAI" 
-                : formatJam(selesai);
-
-            html += `
-                <div class="card">
-                    <div class="date">${tampilTanggal}</div>
-                    <div class="time">${jamMulai} - ${jamSelesai}</div>
-                    <div class="title">${kegiatan}</div>
-                    <div class="place">📍 ${tempat}</div>
-                </div>
-            `;
-        });
-
-        list.innerHTML = html || "Tidak ada jadwal ditemukan.";
-
-    } catch (e) {
-        list.innerHTML = "Gagal memuat data.";
-        console.error(e);
-    }
+  render();
 }
+
+function render(){
+  const q=document.getElementById("search").value.toLowerCase();
+  const fH=document.getElementById("filterHari").value;
+  const fT=document.getElementById("filterTempat").value;
+  const box=document.getElementById("list");
+  box.innerHTML="";
+
+  const filtered=dataRaw.filter(r=>{
+    if(fH && r.hari!==fH) return false;
+    if(fT && r.tempat!==fT) return false;
+    const txt=(r.kegiatan+" "+r.tempat+" "+r.hari).toLowerCase();
+    if(q && !txt.includes(q)) return false;
+    return true;
+  });
+
+  filtered.forEach(r=>{
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`
+      <div class='tgl'>${formatTanggal(r.tanggal)}</div>
+      <div class='jam'>${formatWaktu(r.waktu_mulai)} - ${formatWaktu(r.waktu_selesai)}</div>
+      <div class='title'>${r.kegiatan ? r.kegiatan.toUpperCase() : ''}</div>
+      <div class='tempat'>📍 ${r.tempat || ''}</div>
+    `;
+    box.appendChild(c);
+  });
+}
+
+document.getElementById("search").addEventListener('input',render);
+document.getElementById("filterHari").addEventListener('change',render);
+document.getElementById("filterTempat").addEventListener('change',render);
+
+loadData();
 </script>
 
 </body>
 </html>
-
