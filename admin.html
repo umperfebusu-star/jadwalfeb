@@ -1,228 +1,368 @@
-<!DOCTYPE html>
-<html lang="en">
-
+<!doctype html>
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Jadwal</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Jadwal</title>
 
-        input,
-        select,
-        button {
-            padding: 8px;
-            margin: 5px 0;
-            width: 100%;
-        }
+<style>
+:root{
+  --primary:#3949ab;
+  --bg:#f5f7fa;
+  --card:#ffffff;
+  --radius:16px;
+  --pad:16px;
+  font-family:'Segoe UI',Roboto,Arial;
+}
+body{margin:0;background:var(--bg);}
+.header{
+  height:60px;background:var(--primary);color:#fff;
+  display:flex;align-items:center;padding:0 16px;
+  font-size:20px;font-weight:600
+}
+.container{padding:16px}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
+/* Search */
+.search-box{
+  background:#fff;padding:10px 14px;border-radius:30px;
+  margin-bottom:16px;box-shadow:0 3px 8px rgba(0,0,0,0.1);
+  display:flex;align-items:center
+}
+.search-box input{
+  border:none;outline:none;font-size:16px;width:100%
+}
 
-        table th,
-        table td {
-            padding: 10px;
-            border: 1px solid #999;
-            font-size: 14px;
-            text-align: left;
-        }
+/* Filter */
+.filter-group{display:flex;gap:10px;margin-bottom:16px}
+.filter-group select{
+  flex:1;padding:12px;border-radius:12px;border:1px solid #ccc;
+  font-size:15px
+}
 
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
-
-        #loading {
-            font-size: 16px;
-            color: green;
-        }
-
-        .btn {
-            padding: 8px 14px;
-            cursor: pointer;
-            border: none;
-            color: white;
-            background: #007bff;
-            border-radius: 5px;
-        }
-
-        .btn-red {
-            background: red;
-        }
-
-        .btn-yellow {
-            background: orange;
-        }
-    </style>
+/* Cards */
+.card{
+  background:var(--card);border-radius:var(--radius);
+  padding:16px;margin-bottom:16px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  position:relative
+}
+.card-title{font-size:18px;font-weight:700;margin-top:8px}
+.card-meta{font-size:15px;color:#444;margin-bottom:6px}
+.more-btn{
+  position:absolute;right:12px;top:12px;font-size:22px;
+  background:none;border:none;cursor:pointer
+}
+.menu{
+  position:absolute;right:12px;top:38px;background:#fff;
+  border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  padding:6px;display:none;z-index:10
+}
+.menu div{
+  padding:8px 16px;cursor:pointer;font-size:15px
+}
+.menu div:hover{background:#eee}
+.add-btn{
+  position:fixed;right:20px;bottom:20px;
+  background:var(--primary);color:#fff;width:60px;
+  height:60px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;
+  font-size:32px;border:none;cursor:pointer;
+  box-shadow:0 6px 14px rgba(0,0,0,0.2)
+}
+.modal-bg{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.4);display:none;
+  align-items:center;justify-content:center
+}
+.modal{
+  background:#fff;width:90%;max-width:380px;border-radius:14px;padding:20px
+}
+.modal h2{margin:0 0 10px;font-size:20px;font-weight:700}
+input,select{
+  width:100%;padding:10px;margin-top:6px;margin-bottom:12px;
+  font-size:15px;border-radius:10px;border:1px solid #ccc
+}
+.modal button{
+  padding:10px 16px;font-size:16px;border:none;
+  border-radius:10px;cursor:pointer;margin-top:4px
+}
+.btn-save{background:var(--primary);color:#fff}
+.btn-cancel{background:#aaa;color:#fff;margin-left:6px}
+.small-note{font-size:13px;color:#666;margin-top:-8px;margin-bottom:8px}
+</style>
 </head>
 
 <body>
+<div class="header">Admin Jadwal</div>
+<div class="container">
 
-    <div class="container">
-        <h2>ADMIN — Input Jadwal</h2>
+  <!-- Search -->
+  <div class="search-box">
+    <input id="search" placeholder="Cari kegiatan atau tempat..." />
+  </div>
 
-        <label>Tanggal:</label>
-        <input id="f_tanggal" type="date" />
+  <!-- Filter Hari + Tempat (filter Hari lengkap Senin–Minggu) -->
+  <div class="filter-group">
+    <select id="filterHari">
+      <option value="">Semua Hari</option>
+      <option>Senin</option>
+      <option>Selasa</option>
+      <option>Rabu</option>
+      <option>Kamis</option>
+      <option>Jumat</option>
+      <option>Sabtu</option>
+      <option>Minggu</option>
+    </select>
 
-        <label>Waktu Mulai:</label>
-        <input id="f_mulai" type="time" />
+    <select id="filterTempat">
+      <option value="">Semua Tempat</option>
+    </select>
+  </div>
 
-        <label>Waktu Selesai:</label>
-        <!-- FIX: tidak pakai type="time" -->
-        <input id="f_selesai" placeholder="Misal: 14:00 atau SELESAI" />
+  <div id="list"></div>
+</div>
 
-        <label>Kegiatan:</label>
-        <input id="f_kegiatan" placeholder="Nama kegiatan" />
+<button class="add-btn" onclick="openAdd()">+</button>
 
-        <label>Tempat:</label>
-        <input id="f_tempat" placeholder="Tempat kegiatan" />
+<!-- Modal Form -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Tambah Jadwal</h2>
 
-        <button class="btn" onclick="simpanData()">Simpan</button>
+    <select id="f_hari">
+      <option value="">Pilih Hari</option>
+      <option>Senin</option><option>Selasa</option>
+      <option>Rabu</option><option>Kamis</option>
+      <option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+    </select>
 
-        <p id="loading"></p>
+    <input id="f_tanggal" type="date" />
+    <input id="f_mulai" type="time" />
+    <!-- ===== FIX: gunakan input text agar bisa ketik 'SELESAI' juga ===== -->
+    <input id="f_selesai" placeholder="Waktu selesai (contoh: 14:00 atau SELESAI)" />
+    <div class="small-note">Masukkan format waktu seperti <code>14:00</code> atau ketik <code>SELESAI</code></div>
 
-        <h3>Data Jadwal</h3>
-        <table id="tabelData">
-            <thead>
-                <tr>
-                    <th>Tanggal</th>
-                    <th>Mulai</th>
-                    <th>Selesai</th>
-                    <th>Kegiatan</th>
-                    <th>Tempat</th>
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <input id="f_kegiatan" placeholder="Kegiatan" />
+    <input id="f_tempat" placeholder="Tempat" />
 
-    </div>
+    <button class="btn-save" onclick="saveData()">Simpan</button>
+    <button class="btn-cancel" onclick="closeModal()">Batal</button>
+  </div>
+</div>
 
-    <script>
-        const scriptURL =
-            "https://script.google.com/macros/s/AKfycbwf3x7v8GVwbaA3X_8_0eRXMLznnvGy7WmMoE7YV68XUSqFhrC2_h356p3qsvaVlQw/exec";
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec";
 
-        let editRow = null;
+let dataRaw = [];
+let editIndex = -1;
 
-        function loadData() {
-            fetch(scriptURL + "?action=read")
-                .then(res => res.json())
-                .then(json => {
-                    const tbody = document.querySelector("#tabelData tbody");
-                    tbody.innerHTML = "";
+/* ========== UTIL ========== */
 
-                    json.data.forEach((row, idx) => {
-                        let tr = document.createElement("tr");
+// Format jam universal: menerima '9', '9.00', '9:00', '09:00', 'SELESAI' -> returns '09:00' or 'SELESAI'
+function formatWaktuUniversal(val){
+  if(val === null || val === undefined) return "";
+  const s = String(val).trim();
+  if(s === "") return "";
+  if(s.toLowerCase() === "selesai") return "SELESAI";
+  // replace dot with colon and remove spaces
+  const cleaned = s.replace(".", ":").split(" ")[0];
+  let [h,m] = cleaned.split(":");
+  if(!m) m = "00";
+  // if h is non-numeric, return original uppercased to be safe
+  if(isNaN(Number(h)) || isNaN(Number(m))){
+    return s.toUpperCase();
+  }
+  h = String(h).padStart(2, "0");
+  m = String(m).padStart(2, "0");
+  return `${h}:${m}`;
+}
 
-                        tr.innerHTML = `
-                            <td>${row.tanggal}</td>
-                            <td>${row.mulai}</td>
-                            <td>${row.selesai}</td>
-                            <td>${row.kegiatan}</td>
-                            <td>${row.tempat}</td>
-                            <td>
-                                <button class="btn-yellow" onclick="editBaris(${idx})">Edit</button>
-                                <button class="btn-red" onclick="hapusBaris(${idx})">Hapus</button>
-                            </td>
-                        `;
+// Format tanggal: input '2025-11-28' -> 'JUMAT, 28 NOVEMBER 2025'
+function formatTanggalAllCaps(isoStr){
+  if(!isoStr) return "";
+  const d = new Date(isoStr);
+  if(isNaN(d)) return isoStr.toString().toUpperCase();
+  const hari = d.toLocaleDateString("id-ID",{weekday:"long"}).toUpperCase();
+  const tanggal = String(d.getDate()).padStart(2,"0");
+  const bulan = d.toLocaleDateString("id-ID",{month:"long"}).toUpperCase();
+  const tahun = d.getFullYear();
+  return `${hari}, ${tanggal} ${bulan} ${tahun}`;
+}
 
-                        tbody.appendChild(tr);
-                    });
-                });
-        }
+/* ========== LOAD DATA ========== */
 
-        function formatWaktuUniversal(waktu) {
-            waktu = waktu.trim().toUpperCase();
+async function loadData(){
+  try{
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    dataRaw = data.map(r=>({
+      hari: (r.hari||'').toString(),
+      tanggal: (r.tanggal||'').toString(),
+      waktu_mulai: (r.waktu_mulai||'').toString(),
+      waktu_selesai: (r.waktu_selesai||'').toString(),
+      kegiatan: (r.kegiatan||'').toString(),
+      tempat: (r.tempat||'').toString()
+    }));
 
-            if (waktu === "SELESAI") return "SELESAI";
+    // populate tempat filter
+    const tempatSet = new Set();
+    dataRaw.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat); });
+    const tSel = document.getElementById("filterTempat");
+    tSel.innerHTML = '<option value="">Semua Tempat</option>';
+    [...tempatSet].sort().forEach(t=>{
+      const o = document.createElement("option"); o.value=t; o.textContent=t; tSel.appendChild(o);
+    });
 
-            waktu = waktu.replace(".", ":");
+    render();
+  }catch(err){
+    console.error('Gagal load data', err);
+    document.getElementById("list").innerHTML = '<div style="padding:16px;color:#666">Gagal memuat data. Periksa koneksi atau API.</div>';
+  }
+}
 
-            if (/^\d$/.test(waktu)) return `0${waktu}:00`;
-            if (/^\d\d$/.test(waktu)) return `${waktu}:00`;
+/* ========== RENDER ========== */
 
-            if (/^\d:\d\d$/.test(waktu)) return `0${waktu}`;
-            if (/^\d\d:\d$/.test(waktu)) return `${waktu}0`;
+function render(){
+  const q = (document.getElementById("search").value||'').toLowerCase();
+  const fH = document.getElementById("filterHari").value;
+  const fT = document.getElementById("filterTempat").value;
+  const list = document.getElementById("list");
+  list.innerHTML = "";
 
-            if (/^\d\d:\d\d$/.test(waktu)) return waktu;
+  const filtered = dataRaw
+    .filter((r)=> {
+      if(fH && r.hari !== fH) return false;
+      if(fT && r.tempat !== fT) return false;
+      const text = ((r.kegiatan||'') + ' ' + (r.tempat||'') + ' ' + (r.hari||'')).toLowerCase();
+      if(q && !text.includes(q)) return false;
+      return true;
+    });
 
-            return waktu;
-        }
+  if(filtered.length === 0){
+    list.innerHTML = '<div style="padding:16px;color:#666">Tidak ada jadwal.</div>';
+    return;
+  }
 
-        function simpanData() {
-            let tanggal = document.getElementById("f_tanggal").value;
-            let mulai = document.getElementById("f_mulai").value;
-            let selesai = formatWaktuUniversal(document.getElementById("f_selesai").value);
-            let kegiatan = document.getElementById("f_kegiatan").value;
-            let tempat = document.getElementById("f_tempat").value;
+  filtered.forEach((r,i)=>{
+    const tanggalText = formatTanggalAllCaps(r.tanggal);
+    const mulai = formatWaktuUniversal(r.waktu_mulai);
+    const selesaiRaw = (r.waktu_selesai||'').trim();
+    const selesai = (selesaiRaw.toLowerCase()==='selesai' || selesaiRaw==='') ? 'SELESAI' : formatWaktuUniversal(r.waktu_selesai);
 
-            if (!tanggal || !mulai || !selesai || !kegiatan || !tempat) {
-                alert("Semua field wajib diisi!");
-                return;
-            }
+    const card = document.createElement("div"); card.className="card";
+    card.innerHTML = `
+      <button class='more-btn' onclick='toggleMenu(${i})'>⋮</button>
+      <div class='menu' id='menu-${i}' style="display:none">
+        <div onclick='editItem(${i})'>Edit</div>
+        <div onclick='deleteItem(${i})' style="color:#e53935">Hapus</div>
+      </div>
 
-            document.getElementById("loading").innerText = "Menyimpan...";
+      <div class="card-meta" style="font-weight:700">${tanggalText}</div>
+      <div class="card-meta">${mulai} - ${selesai}</div>
+      <div class="card-title">${String(r.kegiatan || '').toUpperCase()}</div>
+      <div class="card-meta">📍 ${r.tempat || ''}</div>
+    `;
+    list.appendChild(card);
+  });
+}
 
-            let data = {
-                action: editRow === null ? "create" : "update",
-                row: editRow,
-                tanggal,
-                mulai,
-                selesai,
-                kegiatan,
-                tempat
-            };
+/* ========== UI actions ========== */
 
-            fetch(scriptURL, {
-                method: "POST",
-                body: JSON.stringify(data)
-            })
-                .then(() => {
-                    document.getElementById("loading").innerText = "Tersimpan!";
-                    setTimeout(() => document.getElementById("loading").innerText = "", 1500);
-                    kosongkanForm();
-                    loadData();
-                });
-        }
+document.getElementById("search").addEventListener('input', render);
+document.getElementById("filterHari").addEventListener('change', render);
+document.getElementById("filterTempat").addEventListener('change', render);
 
-        function editBaris(i) {
-            fetch(scriptURL + "?action=read")
-                .then(res => res.json())
-                .then(json => {
-                    let row = json.data[i];
-                    editRow = i;
+function toggleMenu(i){
+  // close others
+  document.querySelectorAll('.menu').forEach(m=>m.style.display='none');
+  const m = document.getElementById(`menu-${i}`);
+  if(m) m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
 
-                    document.getElementById("f_tanggal").value = row.tanggal;
-                    document.getElementById("f_mulai").value = row.mulai === "SELESAI" ? "" : row.mulai;
-                    document.getElementById("f_selesai").value = row.selesai;
-                    document.getElementById("f_kegiatan").value = row.kegiatan;
-                    document.getElementById("f_tempat").value = row.tempat;
-                });
-        }
+/* ========== ADD / EDIT / DELETE ========== */
 
-        function hapusBaris(i) {
-            if (!confirm("Hapus data ini?")) return;
+function openAdd(){
+  editIndex = -1;
+  document.getElementById('modalTitle').innerText = 'Tambah Jadwal';
+  document.getElementById('f_hari').value = '';
+  document.getElementById('f_tanggal').value = '';
+  document.getElementById('f_mulai').value = '';
+  document.getElementById('f_selesai').value = '';
+  document.getElementById('f_kegiatan').value = '';
+  document.getElementById('f_tempat').value = '';
+  document.getElementById('modalBg').style.display = 'flex';
+}
 
-            fetch(scriptURL, {
-                method: "POST",
-                body: JSON.stringify({ action: "delete", row: i })
-            }).then(() => loadData());
-        }
+function closeModal(){ document.getElementById('modalBg').style.display='none'; }
 
-        function kosongkanForm() {
-            editRow = null;
-            document.querySelectorAll("input").forEach(i => i.value = "");
-        }
+function editItem(i){
+  editIndex = i;
+  const r = dataRaw[i];
+  document.getElementById('modalTitle').innerText = 'Edit Jadwal';
+  document.getElementById('f_hari').value = r.hari || '';
+  // try to set date in yyyy-mm-dd if possible
+  try{
+    const d = new Date(r.tanggal);
+    if(!isNaN(d)){
+      const yyyy = d.getFullYear(); const mm = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0');
+      document.getElementById('f_tanggal').value = `${yyyy}-${mm}-${dd}`;
+    } else {
+      document.getElementById('f_tanggal').value = '';
+    }
+  }catch(e){ document.getElementById('f_tanggal').value = ''; }
 
-        loadData();
-    </script>
+  document.getElementById('f_mulai').value = formatWaktuUniversal(r.waktu_mulai);
+  // jika sumber 'SELESAI' -> kosongkan field supaya user bisa ketik SELESAI sendiri
+  document.getElementById('f_selesai').value = r.waktu_selesai && r.waktu_selesai.toLowerCase()==='selesai' ? '' : formatWaktuUniversal(r.waktu_selesai);
+  document.getElementById('f_kegiatan').value = r.kegiatan || '';
+  document.getElementById('f_tempat').value = r.tempat || '';
+  document.getElementById('modalBg').style.display = 'flex';
+}
+
+async function saveData(){
+  // ambil raw value (bisa kosong)
+  const rawSelesai = (document.getElementById('f_selesai').value || '').toString().trim();
+
+  const payload = {
+    hari: document.getElementById('f_hari').value,
+    tanggal: document.getElementById('f_tanggal').value,
+    waktu_mulai: document.getElementById('f_mulai').value,
+    // kalau kosong -> anggap SELESAI, jika user ketik 'SELESAI' juga akan dipassing
+    waktu_selesai: rawSelesai === '' ? 'SELESAI' : rawSelesai,
+    kegiatan: document.getElementById('f_kegiatan').value,
+    tempat: document.getElementById('f_tempat').value
+  };
+
+  try{
+    if(editIndex === -1){
+      const params = new URLSearchParams(payload); params.append('action','add');
+      await fetch(API_URL + '?' + params.toString());
+    } else {
+      const params = new URLSearchParams(payload); params.append('action','edit'); params.append('row', String(editIndex+2));
+      await fetch(API_URL + '?' + params.toString());
+    }
+    closeModal();
+    await loadData();
+  }catch(err){
+    alert('Gagal menyimpan: ' + err.message);
+  }
+}
+
+async function deleteItem(i){
+  if(!confirm('Yakin ingin menghapus jadwal ini?')) return;
+  const row = i+2;
+  try{
+    const params = new URLSearchParams(); params.append('action','delete'); params.append('row', String(row));
+    await fetch(API_URL + '?' + params.toString());
+    await loadData();
+  }catch(err){
+    alert('Gagal hapus: ' + err.message);
+  }
+}
+
+/* INIT */
+loadData();
+</script>
 
 </body>
-
 </html>
