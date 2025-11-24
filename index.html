@@ -146,6 +146,7 @@ async function load() {
         const op = document.createElement("option");
         op.value = t;
         op.textContent = t;
+        op.style.textTransform = "capitalize";
         tempatSelect.appendChild(op);
     });
 
@@ -192,6 +193,22 @@ function tampil(data) {
         `;
         list.innerHTML += card;
     });
+
+    // Jika tidak ada hasil → tampilkan pesan
+    if (list.innerHTML.trim() === "") {
+        list.innerHTML = `
+            <div style="
+                background: white;
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                font-size: 17px;
+                box-shadow: 0px 3px 6px rgba(0,0,0,0.15);
+            ">
+                Tidak ada jadwal.
+            </div>
+        `;
+    }
 }
 
 load();
