@@ -1,133 +1,82 @@
-<!doctype html>
-<html lang="id">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Jadwal Kegiatan FEB USU</title>
-<style>
-:root{
-  --primary:#3742fa;
-  --bg1:#0ab6ff;
-  --bg2:#0077ff;
-  --card:#ffffff;
-  --radius:18px;
-  font-family:'Segoe UI',Arial;
-}
-body{margin:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));min-height:100vh;color:#fff;}
-.header{
-  padding:18px;text-align:center;font-size:22px;font-weight:700;
-  background:rgba(0,0,0,0.25);
-}
-.container{padding:16px;}
-.search{
-  background:#fff;color:#000;padding:10px 14px;border-radius:16px;
-  margin-bottom:12px;font-size:16px;border:none;width:100%;
-}
-select{
-  width:100%;padding:12px;border:none;border-radius:14px;margin-bottom:12px;font-size:16px;
-}
-.card{
-  background:#fff;color:#000;border-radius:16px;padding:16px;margin-bottom:16px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.2);
-}
-.card .tgl{font-weight:700;margin-bottom:6px;font-size:17px;}
-.card .jam{font-size:15px;margin-bottom:4px;}
-.card .title{font-weight:800;margin:6px 0;font-size:18px;}
-.card .tempat{font-size:15px;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boss View Jadwal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    .wrapper {
+      max-width: 480px;
+      margin: auto;
+      padding: 15px;
+    }
+    .card-custom {
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border: none;
+    }
+    .search-box {
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
-<div class="header">Jadwal Kegiatan FEB USU</div>
+  <div class="wrapper">
+    <h4 class="text-center mb-3">Jadwal Kegiatan</h4>
+    <input type="text" id="searchInput" class="search-box" placeholder="Cari kegiatan..." onkeyup="searchData()" />
 
-<div class="container">
-  <input id="search" class="search" placeholder="Cari kegiatan, ruangan, atau hari..." />
+    <div id="dataContainer"></div>
+  </div>
 
-  <select id="filterHari">
-    <option value="">Filter: Semua Hari</option>
-    <option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option>
-    <option>Jumat</option><option>Sabtu</option><option>Minggu</option>
-  </select>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec";
 
-  <select id="filterTempat">
-    <option value="">Filter: Semua Tempat</option>
-  </select>
+    async function loadData() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
 
-  <div id="list"></div>
-</div>
+        const sortedData = data.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec";
-let dataRaw=[];
+        let html = "";
+        sortedData.forEach((r) => {
+          html += `
+            <div class="card card-custom p-3 mb-3">
+              <h5 class="fw-bold">${r.kegiatan}</h5>
+              <p class="mb-1"><strong>Tanggal:</strong> ${r.tanggal}</p>
+              <p class="mb-1"><strong>Waktu:</strong> ${r.waktu_mulai} - ${r.waktu_selesai}</p>
+              <p class="mb-0"><strong>Tempat:</strong> ${r.tempat}</p>
+            </div>
+          `;
+        });
 
-function formatWaktu(val){
-  if(!val) return "";
-  if(val.toLowerCase()==="selesai") return "SELESAI";
-  let s = val.replace('.',':');
-  let [h,m] = s.split(":");
-  if(!m) m="00";
-  return h.padStart(2,"0")+":"+m.padStart(2,"0");
-}
+        document.getElementById("dataContainer").innerHTML = html;
+      } catch (error) {
+        document.getElementById("dataContainer").innerHTML = "<p>Error memuat data.</p>";
+      }
+    }
 
-function formatTanggal(iso){
-  const d=new Date(iso);
-  if(isNaN(d)) return iso;
-  const hari=d.toLocaleDateString("id-ID",{weekday:"long"}).toUpperCase();
-  const t=String(d.getDate()).padStart(2,"0");
-  const bln=d.toLocaleDateString("id-ID",{month:"long"}).toUpperCase();
-  const y=d.getFullYear();
-  return `${hari}, ${t} ${bln} ${y}`;
-}
+    function searchData() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const cards = document.querySelectorAll(".card-custom");
 
-async function loadData(){
-  const res=await fetch(API_URL);
-  const data=await res.json();
-  dataRaw=data;
+      cards.forEach((card) => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(input) ? "block" : "none";
+      });
+    }
 
-  const tempatSet=new Set();
-  data.forEach(r=>{ if(r.tempat) tempatSet.add(r.tempat); });
-  const sel=document.getElementById("filterTempat");
-  sel.innerHTML='<option value="">Filter: Semua Tempat</option>';
-  [...tempatSet].sort().forEach(t=>{
-    const o=document.createElement("option");o.value=t;o.textContent=t;sel.appendChild(o);
-  });
-
-  render();
-}
-
-function render(){
-  const q=document.getElementById("search").value.toLowerCase();
-  const fH=document.getElementById("filterHari").value;
-  const fT=document.getElementById("filterTempat").value;
-  const box=document.getElementById("list");
-  box.innerHTML="";
-
-  const filtered=dataRaw.filter(r=>{
-    if(fH && r.hari!==fH) return false;
-    if(fT && r.tempat!==fT) return false;
-    const txt=(r.kegiatan+" "+r.tempat+" "+r.hari).toLowerCase();
-    if(q && !txt.includes(q)) return false;
-    return true;
-  });
-
-  filtered.forEach(r=>{
-    const c=document.createElement("div");
-    c.className="card";
-    c.innerHTML=`
-      <div class='tgl'>${formatTanggal(r.tanggal)}</div>
-      <div class='jam'>${formatWaktu(r.waktu_mulai)} - ${formatWaktu(r.waktu_selesai)}</div>
-      <div class='title'>${r.kegiatan ? r.kegiatan.toUpperCase() : ''}</div>
-      <div class='tempat'>📍 ${r.tempat || ''}</div>
-    `;
-    box.appendChild(c);
-  });
-}
-
-document.getElementById("search").addEventListener('input',render);
-document.getElementById("filterHari").addEventListener('change',render);
-document.getElementById("filterTempat").addEventListener('change',render);
-
-loadData();
-</script>
-
+    loadData();
+  </script>
 </body>
 </html>
