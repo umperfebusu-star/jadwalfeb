@@ -1,218 +1,397 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jadwal Kegiatan FEB USU</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jadwal Kegiatan — FEB USU (Glassmorphism)</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #0285c7;
-    }
+  :root{
+    --bg:#0f1724;
+    --glass-bg: rgba(255,255,255,0.06);
+    --card-bg: rgba(255,255,255,0.06);
+    --accent: rgba(63,81,181,0.95); /* navy-ish */
+    --glass-strong: rgba(255,255,255,0.12);
+    --muted: rgba(255,255,255,0.75);
+    --card-white: rgba(255,255,255,0.04);
+    --glass-border: rgba(255,255,255,0.08);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI, Roboto, "Helvetica Neue", Arial;}
+  body{
+    background: linear-gradient(180deg,#041728 0%, #06273a 60%);
+    -webkit-font-smoothing:antialiased; color: white;
+    padding-bottom:60px;
+  }
 
-    .header {
-        background: #3f51b5;
-        padding: 17px;
-        font-size: 20px;
-        font-weight: bold;
-        color: white;
-        text-align: center;
-    }
+  /* header */
+  .topbar{
+    background: linear-gradient(90deg,var(--accent), #145ea8);
+    padding:18px 20px;
+    text-align:center;
+    font-weight:700;
+    font-size:18px;
+    box-shadow: 0 6px 18px rgba(2,8,23,0.45);
+    position:sticky; top:0; z-index:40;
+    backdrop-filter: blur(6px);
+  }
 
-    .title {
-        font-size: 34px;
-        font-weight: bold;
-        color: white;
-        text-align: center;
-        margin-top: 35px;
-        margin-bottom: 25px;
-    }
+  .app{
+    max-width:820px;
+    margin:24px auto;
+    padding:20px;
+  }
 
-    .container {
-        padding: 20px;
-    }
+  .title{
+    text-align:center;
+    font-size:32px;
+    font-weight:800;
+    margin:18px 0 24px;
+    color: #fff;
+  }
 
-    .inputbox, select {
-        width: 100%;
-        padding: 15px;
-        border-radius: 15px;
-        border: none;
-        margin-bottom: 12px;
-        font-size: 16px;
-    }
+  /* sticky filters container */
+  .filters {
+    position: sticky;
+    top:72px;
+    z-index:30;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:18px;
+  }
 
-    .card {
-        background: #fffde7;
-        padding: 20px;
-        margin-bottom: 18px;
-        border-radius: 20px;
-        font-size: 17px;
-        box-shadow: 0px 3px 6px rgba(0,0,0,0.15);
-    }
+  .filter-card{
+    flex:1;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:14px;
+    padding:10px 14px;
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--glass-border);
+    display:flex; gap:8px; align-items:center;
+  }
 
-    .hari {
-        font-weight: bold;
-        font-size: 19px;
-    }
+  .filter-card select,
+  .filter-card input {
+    border:0; background:transparent; color:inherit; outline:none; font-size:15px; width:100%;
+  }
 
-    .jam {
-        margin-top: 5px;
-        font-size: 17px;
-    }
+  .controls {
+    display:flex; gap:10px; align-items:center;
+  }
 
-    .judul {
-        margin-top: 7px;
-        font-weight: bold;
-        font-size: 18px;
-    }
+  .btn {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+    border:1px solid var(--glass-border);
+    padding:8px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    color: #fff; font-weight:600; font-size:14px;
+  }
+  .btn:active{ transform: translateY(1px); }
 
-    .tempat {
-        margin-top: 5px;
-        font-size: 17px;
-    }
+  /* list */
+  #list { margin-top:8px; display:flex; flex-direction:column; gap:14px; }
+
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-radius:14px;
+    padding:18px;
+    box-shadow: 0 8px 24px rgba(2,8,23,0.45);
+    border:1px solid var(--glass-border);
+    transform-origin:center left;
+    opacity:0; transform: translateY(10px) scale(0.995);
+    transition: all 420ms cubic-bezier(.2,.9,.3,1);
+  }
+  .card.show { opacity:1; transform:translateY(0) scale(1); }
+
+  .date { font-weight:700; font-size:18px; margin-bottom:8px; color: #fff; }
+  .time { font-weight:700; font-size:16px; margin-bottom:6px; color:#e6eef8; }
+  .titleEvent { font-size:18px; font-weight:800; margin-bottom:6px; text-transform: uppercase; letter-spacing:0.4px; }
+  .place { font-size:15px; color:#dbeafe; display:flex; gap:8px; align-items:center; }
+
+  .pin {
+    width:14px; height:14px; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #fff, #c7d2fe);
+    display:inline-block;
+  }
+
+  /* today highlight */
+  .today {
+    box-shadow: 0 10px 30px rgba(29,78,216,0.18);
+    border:1px solid rgba(99,102,241,0.35);
+    background: linear-gradient(180deg, rgba(99,102,241,0.06), rgba(255,255,255,0.02));
+  }
+
+  /* empty message */
+  .empty {
+    text-align:center; padding:24px; border-radius:12px;
+    background: rgba(255,255,255,0.02); border:1px solid var(--glass-border);
+  }
+
+  /* responsive */
+  @media (min-width:900px){
+    .app{ padding:28px; }
+    .filters{ gap:16px; }
+    #list { gap:18px; }
+  }
 </style>
-
 </head>
 <body>
+  <div class="topbar">FAKULTAS EKONOMI DAN BISNIS — USU</div>
 
-<div class="header">
-    FAKULTAS EKONOMI DAN BISNIS USU
-</div>
+  <div class="app">
+    <div class="title">Jadwal Kegiatan FEB USU</div>
 
-<div class="title">Jadwal Kegiatan FEB USU</div>
+    <div class="filters">
+      <div class="filter-card" style="flex:1">
+        <select id="filterHari">
+          <option value="Semua">Filter: Semua Hari</option>
+          <option value="MINGGU">Minggu</option>
+          <option value="SENIN">Senin</option>
+          <option value="SELASA">Selasa</option>
+          <option value="RABU">Rabu</option>
+          <option value="KAMIS">Kamis</option>
+          <option value="JUMAT">Jumat</option>
+          <option value="SABTU">Sabtu</option>
+        </select>
+      </div>
 
-<div class="container">
+      <div class="filter-card" style="flex:1">
+        <select id="filterTempat">
+          <option value="Semua">Filter: Semua Tempat</option>
+        </select>
+      </div>
 
-    <input type="text" id="searchBox" class="inputbox" placeholder="Cari kegiatan, ruangan, atau hari..."/>
-
-    <select id="filterHari" class="inputbox">
-        <option value="Semua">Filter: Semua Hari</option>
-        <option value="SENIN">Senin</option>
-        <option value="SELASA">Selasa</option>
-        <option value="RABU">Rabu</option>
-        <option value="KAMIS">Kamis</option>
-        <option value="JUMAT">Jumat</option>
-        <option value="SABTU">Sabtu</option>
-        <option value="MINGGU">Minggu</option>
-    </select>
-
-    <select id="filterTempat" class="inputbox">
-        <option value="Semua">Filter: Semua Tempat</option>
-    </select>
+      <div class="controls">
+        <button class="btn" id="refreshBtn" title="Refresh daftar">⟳ Refresh</button>
+        <button class="btn" id="sortBtn" title="Urutkan berdasarkan tanggal">Sort: Terbaru ↓</button>
+      </div>
+    </div>
 
     <div id="list"></div>
-</div>
-
+  </div>
 
 <script>
-// URL GOOGLE SHEET JSON
+/* ========== GANTI sheetURL DENGAN WEB APP DEPLOY YG AKTIF ========== */
 const sheetURL = "https://script.google.com/macros/s/AKfycbwpVOjv86huLkyISvEmfgtrnfjDaiBpGL2eF9X53ZtU4ssXIONITQtMj1aXeBgDTIQexg/exec";
 
-// Format tanggal → "JUMAT, 28 November 2025"
-function formatTanggal(tglStr) {
-    const d = new Date(tglStr);
-    const hari = ["MINGGU","SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU"];
-    const bulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli",
-                   "Agustus","September","Oktober","November","Desember"];
+/* util: parse tanggal string.
+   - Accepts either ISO yyyy-mm-dd OR
+   - "Hari, DD MMMM YYYY" (Indonesian) produced by backend.
+   Returns a Date object (local timezone Asia/Jakarta).
+*/
+function parseTanggalToDate(tglStr){
+  if(!tglStr) return null;
+  tglStr = tglStr.toString().trim();
 
-    return `${hari[d.getDay()]}, ${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+  // 1) jika ISO yyyy-mm-dd
+  const isoMatch = tglStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(isoMatch){
+    return new Date(Date.UTC(+isoMatch[1], +isoMatch[2]-1, +isoMatch[3]));
+  }
+
+  // 2) jika format "Hari, DD MMMM YYYY" (Indonesia)
+  // contoh: "Jumat, 28 November 2025" atau "28 November 2025"
+  const months = {
+    "januari":0,"februari":1,"maret":2,"april":3,"mei":4,"juni":5,
+    "juli":6,"agustus":7,"september":8,"oktober":9,"november":10,"desember":11
+  };
+  const parts = tglStr.split(",");
+  let datePart = parts.length>1 ? parts[1].trim() : parts[0].trim();
+  // datePart expected "28 November 2025"
+  const m = datePart.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if(m){
+    const d = +m[1], mo = m[2].toLowerCase(), y = +m[3];
+    if(months[mo] !== undefined) return new Date(Date.UTC(y, months[mo], d));
+  }
+  // fallback: try Date constructor
+  const dd = new Date(tglStr);
+  return isNaN(dd.getTime()) ? null : dd;
 }
 
-// Format jam → leading zero (09:00), selesai tetap "SELESAI"
-function formatJam(jam) {
-    if (jam.toString().toUpperCase() === "SELESAI") return "SELESAI";
-
-    let [h, m] = jam.toString().split(":");
-
-    h = h.padStart(2, "0");
-    m = m ? m.padStart(2, "0") : "00";
-
-    return `${h}:${m}`;
+/* format jam: handle "14" -> "14:00", keep "SELESAI" */
+function formatJam(jam){
+  if(!jam) return "";
+  const s = jam.toString().trim();
+  if(s.toUpperCase().includes("SELESAI")) return "SELESAI";
+  if(/^\d{1,2}$/.test(s)) return s.padStart(2,"0")+":00";
+  if(/^\d{1,2}:\d{1,2}$/.test(s)){
+    const [h,m] = s.split(":"); return h.padStart(2,"0")+":"+m.padStart(2,"0");
+  }
+  return s;
 }
 
+/* today's date in UTC normalized (compare day/month/year) */
+function isSameDayUTC(d1, d2){
+  return d1 && d2 && d1.getUTCFullYear()===d2.getUTCFullYear()
+    && d1.getUTCMonth()===d2.getUTCMonth() && d1.getUTCDate()===d2.getUTCDate();
+}
 
-async function load() {
-    const res = await fetch(sheetURL);
-    const data = await res.json();
+let cachedData = [];
+let sortDesc = true; // default: newest first
 
-    const tempatSet = new Set();
-    data.forEach(d => tempatSet.add(d.tempat));
+async function fetchData(){
+  try{
+    const res = await fetch(sheetURL + "?action=read");
+    const json = await res.json();
+    // ensure array
+    if(!Array.isArray(json)) return [];
+    // map and enrich
+    return json.map((r, idx) => {
+      const isoDate = (() => {
+        // try if backend actually provided yyyy-mm-dd
+        const iso = (r.tanggal||"").trim();
+        const isoMatch = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if(isoMatch) return iso;
+        // attempt to parse indonesian and build ISO
+        const dt = parseTanggalToDate(r.tanggal);
+        if(dt) {
+          // return ISO yyyy-mm-dd (in UTC)
+          return dt.getUTCFullYear()+"-"+String(dt.getUTCMonth()+1).padStart(2,"0")+"-"+String(dt.getUTCDate()).padStart(2,"0");
+        }
+        return "";
+      })();
 
-    // Tambahkan tempat ke filter
-    const tempatSelect = document.getElementById("filterTempat");
-    tempatSet.forEach(t => {
-        const op = document.createElement("option");
-        op.value = t;
-        op.textContent = t;
-        op.style.textTransform = "capitalize";
-        tempatSelect.appendChild(op);
+      const dateObj = parseTanggalToDate(r.tanggal || isoDate);
+      return {
+        ...r,
+        _iso: isoDate,
+        _date: dateObj,
+        waktu_mulai: r.waktu_mulai || "",
+        waktu_selesai: r.waktu_selesai || "",
+        _rowIndex: idx + 2 // if needed for delete (sheet has header)
+      };
     });
-
-    tampil(data);
-
-    document.getElementById("searchBox").addEventListener("input", () => tampil(data));
-    document.getElementById("filterHari").addEventListener("change", () => tampil(data));
-    document.getElementById("filterTempat").addEventListener("change", () => tampil(data));
+  }catch(err){
+    console.error("fetchData error", err);
+    return [];
+  }
 }
 
-function tampil(data) {
-    const search = document.getElementById("searchBox").value.toLowerCase();
-    const fHari = document.getElementById("filterHari").value;
-    const fTempat = document.getElementById("filterTempat").value;
+function renderList(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const fHari = document.getElementById("filterHari").value;
+  const fTempat = document.getElementById("filterTempat").value;
+  const now = new Date(); // local
+  const nowUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 
-    const list = document.getElementById("list");
-    list.innerHTML = "";
+  // sort
+  const sorted = [...data].sort((a,b) => {
+    const da = a._date ? a._date.getTime() : 0;
+    const db = b._date ? b._date.getTime() : 0;
+    return sortDesc ? db - da : da - db;
+  });
 
-    data.forEach(d => {
+  // filter tempat set
+  let any = 0;
+  sorted.forEach((item, i) => {
+    // skip if place filter
+    if(fTempat !== "Semua" && (item.tempat||"") !== fTempat) return;
 
-        const tglFix = formatTanggal(d.tanggal);
-        const mulai = formatJam(d.waktu_mulai);
-        const selesai = formatJam(d.waktu_selesai);
+    // day filter: compare day name (in Indonesian)
+    const dayNames = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+    let dayName = "";
+    if(item._date) dayName = dayNames[(new Date(item._date)).getUTCDay()].toUpperCase();
+    else if(item.tanggal) dayName = (item.tanggal.split(",")[0]||"").toUpperCase();
 
-        const jamFix = `${mulai} - ${selesai}`;
+    if(fHari !== "Semua" && dayName !== fHari) return;
 
-        // Filter hari
-        if (fHari !== "Semua" && tglFix.split(",")[0] !== fHari) return;
+    // compose display fields
+    const tanggalDisplay = item.tanggal || (item._iso ? formatDisplayFromISO(item._iso) : "");
+    const mulai = formatJam(item.waktu_mulai);
+    const selesai = formatJam(item.waktu_selesai);
+    const jamText = mulai + (selesai ? " - " + selesai : "");
 
-        // Filter tempat
-        if (fTempat !== "Semua" && d.tempat !== fTempat) return;
+    // search filter (using global search box)
+    const q = (document.getElementById("searchBox")?.value || "").toLowerCase();
+    const composite = (tanggalDisplay + " " + jamText + " " + (item.kegiatan||"") + " " + (item.tempat||"")).toLowerCase();
+    if(q && !composite.includes(q)) return;
 
-        // Filter search
-        const gabungan = (tglFix + " " + jamFix + " " + d.kegiatan + " " + d.tempat).toLowerCase();
-        if (!gabungan.includes(search)) return;
+    any++;
+    const card = document.createElement("div");
+    card.className = "card";
 
-        const card = `
-            <div class="card">
-                <div class="hari">${tglFix}</div>
-                <div class="jam">${jamFix}</div>
-                <div class="judul">${d.kegiatan}</div>
-                <div class="tempat">📍 ${d.tempat}</div>
-            </div>
-        `;
-        list.innerHTML += card;
-    });
+    // highlight today
+    if(item._date && isSameDayUTC(item._date, nowUTC)) card.classList.add("today");
 
-    // Jika tidak ada hasil → tampilkan pesan
-    if (list.innerHTML.trim() === "") {
-        list.innerHTML = `
-            <div style="
-                background: white;
-                padding: 20px;
-                border-radius: 15px;
-                text-align: center;
-                font-size: 17px;
-                box-shadow: 0px 3px 6px rgba(0,0,0,0.15);
-            ">
-                Tidak ada jadwal.
-            </div>
-        `;
-    }
+    card.innerHTML = `
+      <div class="date">${tanggalDisplay}</div>
+      <div class="time">${jamText}</div>
+      <div class="titleEvent">${item.kegiatan || ""}</div>
+      <div class="place"><span class="pin"></span>${item.tempat || ""}</div>
+    `;
+    list.appendChild(card);
+
+    // animate in
+    setTimeout(()=> card.classList.add("show"), 40 * i);
+  });
+
+  if(any === 0){
+    list.innerHTML = `<div class="empty">Tidak ada jadwal.</div>`;
+  }
 }
 
-load();
+/* helper: format "2025-11-28" -> "Jumat, 28 November 2025" */
+function formatDisplayFromISO(iso){
+  if(!iso) return "";
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return iso;
+  const y = +m[1], mo = +m[2]-1, d=+m[3];
+  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+  const bulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  const dt = new Date(Date.UTC(y,mo,d));
+  return `${hari[dt.getUTCDay()]}, ${d} ${bulan[mo]} ${y}`;
+}
+
+/* init */
+async function init(){
+  // create search input
+  const f = document.createElement("div");
+  f.style.margin = "12px 0 4px";
+  f.innerHTML = `<input id="searchBox" placeholder="Cari kegiatan, ruangan, atau hari..." style="width:100%; padding:11px 14px; border-radius:12px; border:1px solid var(--glass-border); background:transparent; color:inherit; outline:none;">`;
+  document.querySelector(".app").insertBefore(f, document.getElementById("list"));
+
+  const tempatSelect = document.getElementById("filterTempat");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const sortBtn = document.getElementById("sortBtn");
+
+  // load and cache data
+  cachedData = await fetchData();
+
+  // populate tempat filter
+  const tempatSet = new Set();
+  cachedData.forEach(x => { if(x.tempat) tempatSet.add(x.tempat); });
+  tempatSet.forEach(p => {
+    const op = document.createElement("option"); op.value = p; op.textContent = p;
+    tempatSelect.appendChild(op);
+  });
+
+  // initial render
+  renderList(cachedData);
+
+  // listeners
+  document.getElementById("searchBox").addEventListener("input", ()=> renderList(cachedData));
+  document.getElementById("filterHari").addEventListener("change", ()=> renderList(cachedData));
+  tempatSelect.addEventListener("change", ()=> renderList(cachedData));
+
+  refreshBtn.addEventListener("click", async ()=>{
+    refreshBtn.textContent = "⟳ Refreshing...";
+    cachedData = await fetchData();
+    renderList(cachedData);
+    setTimeout(()=> refreshBtn.textContent = "⟳ Refresh", 700);
+  });
+
+  sortBtn.addEventListener("click", ()=>{
+    sortDesc = !sortDesc;
+    sortBtn.textContent = sortDesc ? "Sort: Terbaru ↓" : "Sort: Terlama ↑";
+    renderList(cachedData);
+  });
+}
+
+init();
 </script>
-
 </body>
 </html>
