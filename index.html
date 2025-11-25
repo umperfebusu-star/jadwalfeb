@@ -1,346 +1,328 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jadwal Kegiatan</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jadwal Kegiatan — FEB USU</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #0d1b2a;
-        color: #fff;
-    }
+  :root{
+    --bg1:#041728;
+    --bg2:#06273a;
+    --accent1:#3f51b5;
+    --accent2:#145ea8;
+    --glass-border: rgba(255,255,255,0.08);
+  }
+  *{box-sizing:border-box}
 
-    .container {
-        max-width: 850px;
-        margin: 20px auto;
-        padding: 12px;
-    }
+  body{
+    margin:0;
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    background: linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 60%);
+    color: #eaf2ff;
+    padding-bottom:60px;
+  }
 
-    h1 {
-        text-align: center;
-        font-size: 26px;
-        margin-bottom: 20px;
-        font-weight: 700;
-    }
+  /* Topbar */
+  .topbar{
+    position:sticky; top:0; z-index:60;
+    background: linear-gradient(90deg,var(--accent1), var(--accent2));
+    padding:16px 18px;
+    text-align:center;
+    font-weight:800;
+    font-size:18px;
+    color:#fff;
+    box-shadow:0 6px 18px rgba(2,8,23,0.45);
+  }
 
-    /* --- INPUT PENCARIAN --- */
-    #searchBox {
-        width: 100%;
-        padding: 10px 12px;
-        font-size: 15px;
-        border-radius: 10px;
-        border: none;
-        margin-bottom: 14px;
-        background: rgba(255,255,255,0.1);
-        color: white;
-        outline: none;
-    }
+  .container{
+    max-width:880px;
+    margin:22px auto;
+    padding:18px;
+  }
 
-    /* --- WRAPPER FILTERS --- */
-    .filters {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
-    }
+  .title{
+    text-align:center;
+    font-size:30px;
+    font-weight:800;
+    margin-bottom:18px;
+  }
 
-    .filter {
-        flex: 1;
-        min-width: 140px;
-    }
+  /* Search */
+  .search{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--glass-border);
+    background:rgba(255,255,255,0.04);
+    color:#fff;
+    outline:none;
+    font-size:15px;
+  }
 
-    /* --- SELECT DROPDOWN FIX COLOR --- */
-    .filter select {
-        width: 100%;
-        border: 1px solid rgba(255,255,255,0.22);
-        background: rgba(255,255,255,0.12);
-        color: #ffffff;
-        padding: 8px;
-        font-size: 14px;
-        border-radius: 8px;
-        outline: none;
-        appearance: none;
-        backdrop-filter: blur(6px);
-    }
+  /* Filters */
+  .filters{
+    display:flex;
+    gap:12px;
+    margin-top:12px;
+  }
 
-    /* --- BUTTONS --- */
-    button {
-        background: #1b263b;
-        color: white;
-        border: 1px solid rgba(255,255,255,0.2);
-        padding: 8px 14px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
+  .filter{
+    flex:1;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--glass-border);
+    background:rgba(255,255,255,0.04);
+  }
 
-    button:hover {
-        background: #415a77;
-    }
+  /* PERBAIKAN WARNA DROPDOWN — SUPAYA TERBACA */
+  .filter select{
+    width:100%;
+    background-color:rgba(0,0,0,0.4);
+    color:#fff;
+    border:0;
+    outline:none;
+    font-size:14px;
+  }
 
-    /* --- LIST ITEM --- */
-    .item {
-        padding: 14px;
-        margin-bottom: 12px;
-        background: rgba(255,255,255,0.06);
-        border-radius: 12px;
-        border-left: 5px solid #71c4ff;
-        line-height: 1.45;
-    }
+  .filter select option{
+    background-color:#0d2030;
+    color:white;
+  }
 
-    .tanggal {
-        font-size: 17px;
-        font-weight: bold;
-        margin-bottom: 6px;
-    }
-    .waktu {
-        font-size: 15px;
-        margin-bottom: 6px;
-    }
-    .judul {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-    .tempat {
-        font-size: 15px;
-    }
+  .controls{
+    display:flex;
+    gap:8px;
+    margin-top:12px;
+  }
 
-    .toolbar {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 18px;
-    }
+  .btn{
+    padding:9px 12px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--glass-border);
+    color:#fff;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+  }
+
+  /* List */
+  #list{
+    margin-top:18px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .card{
+    padding:16px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--glass-border);
+    opacity:0;
+    transform:translateY(10px);
+    transition:all .4s;
+  }
+  .card.show{
+    opacity:1; transform:translateY(0);
+  }
+
+  .card.today{
+    border:1px solid rgba(99,102,241,0.5);
+    background:rgba(99,102,241,0.09);
+  }
+
+  .head{
+    display:flex; justify-content:space-between;
+    font-size:15px;
+    font-weight:700;
+  }
+  .kegiatan{margin-top:10px; font-size:18px; font-weight:800;}
+  .tempat{margin-top:8px; opacity:.8;}
+
+  .empty{
+    padding:22px; border-radius:12px;
+    text-align:center;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--glass-border);
+  }
 </style>
 </head>
 
 <body>
+<div class="topbar">FAKULTAS EKONOMI DAN BISNIS — USU</div>
+
 <div class="container">
-    <h1>Jadwal Kegiatan</h1>
 
-    <!-- SEARCH -->
-    <input type="text" id="searchBox" placeholder="Cari judul kegiatan...">
+  <div class="title">Jadwal Kegiatan</div>
 
-    <!-- FILTERS -->
-    <div class="filters">
-        <div class="filter">
-            <select id="filterHari">
-                <option value="Semua">Filter: Semua Hari</option>
-                <option value="Senin">Senin</option>
-                <option value="Selasa">Selasa</option>
-                <option value="Rabu">Rabu</option>
-                <option value="Kamis">Kamis</option>
-                <option value="Jumat">Jumat</option>
-                <option value="Sabtu">Sabtu</option>
-                <option value="Minggu">Minggu</option>
-            </select>
-        </div>
+  <input id="searchBox" class="search" placeholder="Cari kegiatan, tempat, atau hari..." />
 
-        <div class="filter">
-            <select id="filterTempat">
-                <option value="Semua">Filter: Semua Ruangan</option>
-            </select>
-        </div>
+  <div class="filters">
+    <div class="filter">
+      <select id="filterHari">
+        <option value="Semua">Filter: Semua Hari</option>
+        <option value="SENIN">Senin</option>
+        <option value="SELASA">Selasa</option>
+        <option value="RABU">Rabu</option>
+        <option value="KAMIS">Kamis</option>
+        <option value="JUMAT">Jumat</option>
+        <option value="SABTU">Sabtu</option>
+        <option value="MINGGU">Minggu</option>
+      </select>
     </div>
 
-    <!-- BUTTONS -->
-    <div class="toolbar">
-        <button id="sortBtn">Sort: Terbaru ↓</button>
-        <button id="refreshBtn">⟳ Refresh</button>
+    <div class="filter">
+      <select id="filterTempat">
+        <option value="Semua">Filter: Semua Ruangan</option>
+      </select>
     </div>
+  </div>
 
-    <!-- LIST -->
-    <div id="listContainer"></div>
+  <div class="controls">
+    <button id="sortBtn" class="btn">Sort: Terbaru ↓</button>
+    <button id="refreshBtn" class="btn">⟳ Refresh</button>
+  </div>
+
+  <div id="list"></div>
+
 </div>
 
 <script>
-/* ----------------------------------------------------------
-   CONFIG: URL APPS SCRIPT MU
----------------------------------------------------------- */
-const sheetURL =
-  "https://script.google.com/macros/s/AKfycbxGy73stJbmn8v2FuH3IuWX7GBEtF9hhB5F9_xrwF7iXFW1nAV-Cdza19j5wtkCI6fB/exec";
+const sheetURL = "https://script.google.com/macros/s/AKfycbzoT6zijm95CM5JRPdAMVJM0MKQoLi0pxJ9V1vGlN79VWl6uf8eFbjTztIYpUCQJWtptw/exec";
+
+const hariNama = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const bulanNama = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+function formatTanggalDisplay(t){
+  if(!t) return "";
+  const d = new Date(t);
+  if(isNaN(d)) return t;
+  return hariNama[d.getDay()].toUpperCase() + ", " +
+    d.getDate() + " " + bulanNama[d.getMonth()] + " " + d.getFullYear();
+}
+
+function formatWaktu(w){
+  if(!w) return "";
+  if(w.toUpperCase().includes("SELESAI")) return "SELESAI";
+  if(/^\d{1,2}$/.test(w)) return w.padStart(2,"0") + ":00";
+  if(/^\d{1,2}:\d{1,2}$/.test(w)){
+    let [h,m] = w.split(":");
+    return h.padStart(2,"0") + ":" + m.padStart(2,"0");
+  }
+  return w;
+}
 
 let cachedData = [];
 let sortDesc = true;
 
-/* ----------------------------------------------------------
-   AMBIL DATA
----------------------------------------------------------- */
-async function fetchData() {
-    try {
-        const res = await fetch(sheetURL);
-        return await res.json();
-    } catch (e) {
-        console.error(e);
-        return [];
-    }
+async function fetchData(){
+  try{
+    const r = await fetch(sheetURL + "?action=read");
+    const j = await r.json();
+    return j.map(x => ({
+      ...x,
+      _date: new Date(x.tanggal)
+    }));
+  }catch(e){
+    console.error(e);
+    return [];
+  }
 }
 
-/* ----------------------------------------------------------
-   PARSER TANGGAL BONUS
----------------------------------------------------------- */
-function parseTanggal(raw) {
-    if (!raw) return { dayName: "-", fullDate: "-", dateObj: null };
-    raw = raw.trim();
+function populateTempatFilter(data){
+  const sel = document.getElementById("filterTempat");
+  sel.querySelectorAll("option:not([value='Semua'])").forEach(o => o.remove());
 
-    const namaHari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-
-    // Format: "27/11/2025"
-    let p = raw.split(/[\/\-]/);
-    if (p.length === 3) {
-        let d = parseInt(p[0]);
-        let m = parseInt(p[1]) - 1;
-        let y = parseInt(p[2]);
-        let obj = new Date(y, m, d);
-        if (!isNaN(obj)) {
-            return {
-                dayName: namaHari[obj.getDay()],
-                fullDate: formatTanggalIndo(obj),
-                dateObj: obj
-            };
-        }
-    }
-
-    let test = new Date(raw);
-    if (!isNaN(test)) {
-        return {
-            dayName: namaHari[test.getDay()],
-            fullDate: formatTanggalIndo(test),
-            dateObj: test
-        };
-    }
-
-    return { dayName: "-", fullDate: raw, dateObj: null };
+  const places = [...new Set(data.map(a => a.tempat).filter(Boolean))].sort();
+  places.forEach(p=>{
+    const o = document.createElement("option");
+    o.value = p; o.textContent = p;
+    sel.appendChild(o);
+  });
 }
 
-function formatTanggalIndo(dateObj) {
-    const bulan = [
-        "Januari","Februari","Maret","April","Mei","Juni",
-        "Juli","Agustus","September","Oktober","November","Desember"
-    ];
-    let h = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][dateObj.getDay()];
-    return `${h}, ${dateObj.getDate()} ${bulan[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+function renderList(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  const q = document.getElementById("searchBox").value.toLowerCase();
+  const fHari = document.getElementById("filterHari").value;
+  const fTempat = document.getElementById("filterTempat").value;
+
+  let arr = [...data];
+
+  arr.sort((a,b)=> sortDesc ? b._date - a._date : a._date - b._date);
+
+  let visible = 0;
+
+  arr.forEach((item,i)=>{
+    const day = hariNama[item._date.getDay()].toUpperCase();
+    if(fHari !== "Semua" && day !== fHari) return;
+    if(fTempat !== "Semua" && item.tempat !== fTempat) return;
+
+    const full = (item.kegiatan + " " + item.tempat + " " + day).toLowerCase();
+    if(q && !full.includes(q)) return;
+
+    visible++;
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="head">
+        <div>${formatTanggalDisplay(item.tanggal)}</div>
+        <div>${formatWaktu(item.waktu_mulai)} - ${formatWaktu(item.waktu_selesai)}</div>
+      </div>
+      <div class="kegiatan">${item.kegiatan}</div>
+      <div class="tempat">${item.tempat}</div>
+    `;
+    list.appendChild(card);
+
+    setTimeout(()=>card.classList.add("show"), 20*i);
+  });
+
+  if(visible === 0){
+    list.innerHTML = `<div class="empty">Tidak ada jadwal.</div>`;
+  }
 }
 
-/* JAM: Tetap tampil walau format kacau */
-function normalizeTime(t) {
-    if (!t) return t;
-    t = t.trim();
-
-    t = t.replace(/[^0-9:]/g, "");
-    if (/^\d{3,4}$/.test(t)) {
-        t = t.padStart(4,"0");
-        return t.slice(0,2) + ":" + t.slice(2);
-    }
-    if (/^\d{1,2}:\d{1,2}$/.test(t)) return t;
-
-    return t;
-}
-
-/* ----------------------------------------------------------
-   RENDER LIST
----------------------------------------------------------- */
-function renderList(data) {
-    const wrap = document.getElementById("listContainer");
-    wrap.innerHTML = "";
-
-    let q = document.getElementById("searchBox").value.toLowerCase();
-    let fHari = document.getElementById("filterHari").value;
-    let fTempat = document.getElementById("filterTempat").value;
-
-    let filtered = data.filter(item => {
-        let tanggal = parseTanggal(item.Tanggal);
-        let cocokHari = (fHari === "Semua" || tanggal.dayName === fHari);
-        let cocokTempat = (fTempat === "Semua" || item.Tempat === fTempat);
-        let cocokSearch = item.Judul.toLowerCase().includes(q);
-
-        return cocokHari && cocokTempat && cocokSearch;
-    });
-
-    filtered.sort((a,b)=>{
-        let ta = parseTanggal(a.Tanggal).dateObj || new Date(0);
-        let tb = parseTanggal(b.Tanggal).dateObj || new Date(0);
-        return sortDesc ? tb - ta : ta - tb;
-    });
-
-    filtered.forEach(item => {
-        let tgl = parseTanggal(item.Tanggal);
-        let jam1 = normalizeTime(item["Waktu Mulai"]);
-        let jam2 = normalizeTime(item["Waktu Selesai"]);
-
-        let box = document.createElement("div");
-        box.className = "item";
-        box.innerHTML = `
-            <div class="tanggal">${tgl.fullDate}</div>
-            <div class="waktu">${jam1} - ${jam2 ? jam2 : "SELESAI"}</div>
-            <div class="judul">${item.Judul}</div>
-            <div class="tempat">📍 ${item.Tempat}</div>
-        `;
-        wrap.appendChild(box);
-    });
-}
-
-/* ----------------------------------------------------------
-   POPULASI FILTER TEMPAT
----------------------------------------------------------- */
-function populateTempatFilter(data) {
-    let select = document.getElementById("filterTempat");
-    select.innerHTML = `<option value="Semua">Filter: Semua Ruangan</option>`;
-
-    let unik = [...new Set(data.map(d => d.Tempat))];
-
-    unik.forEach(t => {
-        let op = document.createElement("option");
-        op.value = t;
-        op.textContent = t;
-        select.appendChild(op);
-    });
-}
-
-/* ----------------------------------------------------------
-   EVENT HANDLERS
----------------------------------------------------------- */
-document.getElementById("sortBtn").addEventListener("click", ()=>{
-    sortDesc = !sortDesc;
-    document.getElementById("sortBtn").textContent =
-        sortDesc ? "Sort: Terbaru ↓" : "Sort: Terlama ↑";
-    renderList(cachedData);
-});
-
-["searchBox","filterHari","filterTempat"].forEach(id=>{
-    document.getElementById(id).addEventListener("input", ()=> renderList(cachedData));
-});
-
-/* REFRESH SEMUANYA */
+/* REFRESH — PERBAIKAN */
 document.getElementById("refreshBtn").addEventListener("click", async ()=>{
-    document.getElementById("refreshBtn").textContent = "⟳ Refreshing...";
+  const btn = document.getElementById("refreshBtn");
+  btn.textContent = "⟳ Loading...";
 
-    /* RESET FILTER */
-    document.getElementById("searchBox").value = "";
-    document.getElementById("filterHari").value = "Semua";
-    document.getElementById("filterTempat").value = "Semua";
-    sortDesc = true;
-    document.getElementById("sortBtn").textContent = "Sort: Terbaru ↓";
+  document.getElementById("searchBox").value = "";
+  document.getElementById("filterHari").value = "Semua";
+  document.getElementById("filterTempat").value = "Semua";
 
-    cachedData = await fetchData();
-    populateTempatFilter(cachedData);
-    renderList(cachedData);
+  cachedData = await fetchData();
+  populateTempatFilter(cachedData);
+  renderList(cachedData);
 
-    setTimeout(()=>{
-        document.getElementById("refreshBtn").textContent = "⟳ Refresh";
-    },500);
+  setTimeout(()=> btn.textContent = "⟳ Refresh", 400);
 });
 
-/* ----------------------------------------------------------
-   START
----------------------------------------------------------- */
-(async ()=>{
-    cachedData = await fetchData();
-    populateTempatFilter(cachedData);
-    renderList(cachedData);
+document.getElementById("sortBtn").addEventListener("click", ()=>{
+  sortDesc = !sortDesc;
+  document.getElementById("sortBtn").textContent = sortDesc ? "Sort: Terbaru ↓" : "Sort: Terlama ↑";
+  renderList(cachedData);
+});
+
+document.getElementById("searchBox").addEventListener("input", ()=>{
+  clearTimeout(window._deb);
+  window._deb = setTimeout(()=>renderList(cachedData),200);
+});
+
+document.getElementById("filterHari").addEventListener("change", ()=>renderList(cachedData));
+document.getElementById("filterTempat").addEventListener("change", ()=>renderList(cachedData));
+
+(async()=>{
+  cachedData = await fetchData();
+  populateTempatFilter(cachedData);
+  renderList(cachedData);
 })();
 </script>
 
