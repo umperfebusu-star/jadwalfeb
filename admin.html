@@ -1,227 +1,519 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Admin Jadwal</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Jadwal — FEB USU</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
-    body {
-        margin: 0;
-        background: #0f1a28;
-        font-family: "Inter", sans-serif;
-        color: white;
-    }
+  :root{
+    --bg:#0f1724;
+    --panel:#0f2636;
+    --muted: rgba(255,255,255,0.65);
+    --glass-border: rgba(255,255,255,0.06);
+    --accent:#3f51b5;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+    background: linear-gradient(180deg,#041728 0%, #06273a 60%);
+    color:#eaf2ff;
+    min-height:100vh;
+  }
 
-    header {
-        background: #1a2d4a;
-        padding: 20px;
-        font-size: 22px;
-        font-weight: 700;
-    }
+  /* header */
+  .topbar{
+    background: linear-gradient(90deg,var(--accent), #145ea8);
+    padding:16px 20px;
+    font-weight:700;
+    font-size:18px;
+    color:white;
+  }
 
-    .container {
-        padding: 20px;
-        max-width: 900px;
-        margin: auto;
-    }
+  .container{
+    max-width:980px;
+    margin:22px auto;
+    padding:18px;
+  }
 
-    input, select {
-        width: 100%;
-        padding: 14px;
-        margin-bottom: 12px;
-        border-radius: 10px;
-        background: #1d2b3f;
-        border: 1px solid #394b63;
-        color: white;
-    }
+  .search {
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--glass-border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    color:inherit;
+    font-size:15px;
+    outline:none;
+  }
 
-    .card {
-        background: #142233;
-        padding: 18px;
-        border-radius: 14px;
-        margin-bottom: 14px;
-        border: 1px solid #23364e;
-        position: relative;
-    }
+  .filters {
+    display:flex;
+    gap:12px;
+    margin-top:12px;
+    align-items:center;
+  }
+  .filters .filter {
+    flex:1;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--glass-border);
+  }
+  .filters select { width:100%; background:transparent; color:inherit; border:0; outline:none; font-size:14px; }
 
-    .card h3 {
-        margin: 6px 0;
-        font-size: 18px;
-        font-weight: 700;
-    }
+  .controls{
+    display:flex; gap:10px; margin-top:12px; align-items:center;
+  }
+  .btn {
+    padding:9px 12px; border-radius:10px; background:transparent; border:1px solid var(--glass-border); color:inherit; cursor:pointer; font-weight:600;
+  }
 
-    .card small {
-        opacity: 0.8;
-    }
+  #list { margin-top:18px; display:flex; flex-direction:column; gap:12px; }
 
-    .menu-btn {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-        background: transparent;
-        border: none;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-    }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:12px;
+    padding:16px;
+    border:1px solid var(--glass-border);
+    position:relative;
+    box-shadow: 0 10px 24px rgba(2,8,23,0.45);
+  }
+  .card .meta { font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .card .time { font-weight:700; color:#dbeafe; margin-bottom:6px; }
+  .card .title { font-size:16px; font-weight:800; margin-bottom:6px; color:#fff; text-transform:uppercase; }
+  .card .place { font-size:14px; color: #dbeafe; display:flex; gap:8px; align-items:center; }
 
-    .menu-popup {
-        position: absolute;
-        right: 10px;
-        top: 40px;
-        background: #1d2b3f;
-        border-radius: 8px;
-        border: 1px solid #34465a;
-        display: none;
-        min-width: 120px;
-        z-index: 10;
-    }
+  /* menu (3 dots) */
+  .menu-btn {
+    position:absolute; right:10px; top:10px; background:transparent; border:0; color:inherit; cursor:pointer; font-size:18px;
+  }
+  .menu-popup {
+    position:absolute; right:12px; top:38px; display:none; background: #0b2236; border-radius:8px; border:1px solid rgba(255,255,255,0.04); min-width:130px; z-index:30;
+  }
+  .menu-popup .opt { padding:10px 12px; cursor:pointer; color:#eaf2ff; border-bottom:1px solid rgba(255,255,255,0.02); }
+  .menu-popup .opt:hover { background: rgba(255,255,255,0.02); }
+  .menu-popup .opt.last { border-bottom:0; }
 
-    .menu-popup div {
-        padding: 10px 12px;
-        cursor: pointer;
-        font-size: 14px;
-        border-bottom: 1px solid #2e3e52;
-    }
+  /* floating add */
+  .fab {
+    position:fixed; right:24px; bottom:24px; width:56px; height:56px; border-radius:50%; background:var(--accent); color:white; border:0; font-size:30px; cursor:pointer;
+    box-shadow: 0 10px 30px rgba(63,81,181,0.24);
+  }
 
-    .menu-popup div:hover {
-        background: #223347;
-    }
+  /* modal */
+  .modal-backdrop {
+    position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:100;
+  }
+  .modal {
+    width:100%; max-width:720px; background:#072034; padding:18px; border-radius:12px; border:1px solid rgba(255,255,255,0.04);
+  }
+  .modal h3 { margin:0 0 8px; }
+  .row { display:flex; gap:10px; margin-bottom:10px; }
+  .col { flex:1; }
+  .input, textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:inherit; outline:none; }
+  textarea { min-height:80px; resize:vertical; }
 
-    .add-btn {
-        position: fixed;
-        right: 25px;
-        bottom: 25px;
-        width: 55px;
-        height: 55px;
-        border-radius: 50%;
-        background: #3558ff;
-        color: white;
-        border: none;
-        font-size: 30px;
-        cursor: pointer;
-    }
+  .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+  .danger { background:#8b0000; color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer; }
+
+  @media(min-width:900px){
+    .row { gap:12px; }
+  }
 </style>
-
 </head>
 <body>
+  <div class="topbar">Admin Jadwal</div>
 
-<header>Admin Jadwal</header>
+  <div class="container">
+    <input id="searchBox" class="search" placeholder="Cari kegiatan atau tempat..." />
 
-<div class="container">
+    <div class="filters">
+      <div class="filter">
+        <select id="filterHari">
+          <option value="Semua">Semua Hari</option>
+          <option value="SENIN">Senin</option>
+          <option value="SELASA">Selasa</option>
+          <option value="RABU">Rabu</option>
+          <option value="KAMIS">Kamis</option>
+          <option value="JUMAT">Jumat</option>
+          <option value="SABTU">Sabtu</option>
+          <option value="MINGGU">Minggu</option>
+        </select>
+      </div>
 
-    <input type="text" id="search" placeholder="Cari kegiatan atau tempat...">
+      <div class="filter">
+        <select id="filterTempat">
+          <option value="Semua">Semua Tempat</option>
+        </select>
+      </div>
+    </div>
 
-    <select id="filterHari">
-        <option value="">Semua Hari</option>
-        <option>Senin</option>
-        <option>Selasa</option>
-        <option>Rabu</option>
-        <option>Kamis</option>
-        <option>Jumat</option>
-        <option>Sabtu</option>
-        <option>Minggu</option>
-    </select>
-
-    <select id="filterTempat">
-        <option value="">Semua Tempat</option>
-    </select>
+    <div class="controls">
+      <button id="sortBtn" class="btn">Sort: Terbaru ↓</button>
+      <button id="refreshBtn" class="btn">⟳ Refresh</button>
+    </div>
 
     <div id="list"></div>
-</div>
+  </div>
 
-<button class="add-btn" onclick="tambahData()">+</button>
+  <button class="fab" id="btnAdd" title="Tambah Jadwal">+</button>
+
+  <!-- Modal tambah/edit -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="modalTitle">Tambah Jadwal</h3>
+
+      <div class="row">
+        <div class="col"><input id="inpHari" class="input" placeholder="Hari (opsional, contoh: Jumat)"></div>
+        <div class="col"><input id="inpTanggal" class="input" placeholder="Tanggal (YYYY-MM-DD atau 2025-11-28)"></div>
+      </div>
+
+      <div class="row">
+        <div class="col"><input id="inpMulai" class="input" placeholder="Waktu Mulai (08:30 / 8:30 / 9)"></div>
+        <div class="col"><input id="inpSelesai" class="input" placeholder="Waktu Selesai (14 / 14:00 / SELESAI)"></div>
+      </div>
+
+      <div style="margin-bottom:10px"><input id="inpKegiatan" class="input" placeholder="Judul Kegiatan"></div>
+      <div style="margin-bottom:6px"><input id="inpTempat" class="input" placeholder="Tempat / Ruangan"></div>
+
+      <div class="modal-footer">
+        <button id="btnCancel" class="btn">Batal</button>
+        <button id="btnSave" class="btn">Simpan</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-    // ==== DATA CONTOH, bisa diganti dari API ====
-    let data = [
-        {"hari":"JUMAT","tanggal":"2025-11-28","waktu_mulai":"9:00","waktu_selesai":"SELESAI","kegiatan":"UJIAN KOMPREHENSIF S1 MANAJEMEN","tempat":"LAB KOMPUTER"},
-        {"hari":"Selasa","tanggal":"2025-11-25","waktu_mulai":"7:00","waktu_selesai":"SELESAI","kegiatan":"RAPAT DOSEN S1 MANAJEMEN","tempat":"RUANG RAPAT DOSEN"},
-        {"hari":"Kamis","tanggal":"2025-11-27","waktu_mulai":"8:30","waktu_selesai":"SELESAI","kegiatan":"SEMINAR NASIONAL","tempat":"AULA SUHADJI HADIBROTO"},
-        {"hari":"Jumat","tanggal":"2025-11-28","waktu_mulai":"11:00","waktu_selesai":"14","kegiatan":"WORKSHOP","tempat":"AULA MIKIE WIJAYA"}
-    ];
+/* ========== CONFIG: SET URL WEB APP APPS SCRIPT AND ACTIONS ========== */
+/* Gunakan URL Web App kamu (pastikan versi ter-deploy terbaru) */
+const sheetURL = "https://script.google.com/macros/s/AKfycbzoT6zijm95CM5JRPdAMVJM0MKQoLi0pxJ9V1vGlN79VWl6uf8eFbjTztIYpUCQJWtptw/exec";
 
-    const list = document.getElementById("list");
-    const filterHari = document.getElementById("filterHari");
-    const filterTempat = document.getElementById("filterTempat");
-    const search = document.getElementById("search");
+/* Utility */
+const hariNama = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const bulanNama = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 
-    function loadTempat() {
-        let tempatList = [...new Set(data.map(d => d.tempat))];
-        tempatList.forEach(t => {
-            filterTempat.innerHTML += `<option>${t}</option>`;
-        });
-    }
+function formatTanggalDisplay(t){
+  if(!t) return "";
+  // coba YYYY-MM-DD
+  const m = (""+t).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  let d;
+  if(m) d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+  else {
+    const dd = new Date(t);
+    if(!isNaN(dd)) d = dd;
+  }
+  if(!d) return t;
+  return hariNama[d.getUTCDay()] + ", " + d.getUTCDate() + " " + bulanNama[d.getUTCMonth()] + " " + d.getUTCFullYear();
+}
 
-    function tampilkan() {
-        list.innerHTML = "";
+function normalizeTime(t){
+  if(!t && t !== 0) return "";
+  const s = (""+t).trim();
+  if(s.toUpperCase().includes("SELESAI")) return "SELESAI";
+  if(/^\d{1,2}$/.test(s)) return s.padStart(2,"0") + ":00";
+  if(/^\d{1,2}:\d{1,2}$/.test(s)){
+    const [h,m] = s.split(":"); return h.padStart(2,"0") + ":" + m.padStart(2,"0");
+  }
+  // parse 1899-12-...
+  const dd = new Date(s);
+  if(!isNaN(dd)) {
+    const hh = String(dd.getUTCHours()).padStart(2,"0");
+    const mm = String(dd.getUTCMinutes()).padStart(2,"0");
+    return hh + ":" + mm;
+  }
+  return s;
+}
 
-        let key = search.value.toLowerCase();
-        let h = filterHari.value;
-        let t = filterTempat.value;
+/* ---------------------------------------------------
+   State
+---------------------------------------------------*/
+let cached = []; // array from API
+let sortDesc = true;
 
-        let filtered = data.filter(d =>
-            (h === "" || d.hari.toLowerCase() === h.toLowerCase()) &&
-            (t === "" || d.tempat === t) &&
-            (d.kegiatan.toLowerCase().includes(key) || d.tempat.toLowerCase().includes(key))
-        );
+/* ---------------------------------------------------
+   Fetch read
+---------------------------------------------------*/
+async function apiRead(){
+  try{
+    const res = await fetch(sheetURL + "?action=read");
+    const json = await res.json();
+    // json is array; enrich with _row for delete (row = index + 2)
+    return json.map((r,i) => ({...r, _row: i + 2}));
+  }catch(err){
+    console.error("apiRead error", err);
+    return [];
+  }
+}
 
-        filtered.forEach((d, i) => {
-            let card = document.createElement("div");
-            card.className = "card";
-            card.innerHTML = `
-                <button class="menu-btn" onclick="toggleMenu(${i})">⋮</button>
-                <div class="menu-popup" id="menu-${i}">
-                    <div onclick="editData(${i})">✏ Edit</div>
-                    <div onclick="hapusData(${i})">🗑 Hapus</div>
-                </div>
+/* ---------------------------------------------------
+   Create (append)
+   action=create&hari=...&tanggal=...&waktu_mulai=...&waktu_selesai=...&kegiatan=...&tempat=...
+---------------------------------------------------*/
+async function apiCreate(payload){
+  const params = new URLSearchParams({ action: "create",
+    hari: payload.hari||"",
+    tanggal: payload.tanggal||"",
+    waktu_mulai: payload.waktu_mulai||"",
+    waktu_selesai: payload.waktu_selesai||"",
+    kegiatan: payload.kegiatan||"",
+    tempat: payload.tempat||""
+  });
+  const url = sheetURL + "?" + params.toString();
+  const r = await fetch(url);
+  return await r.json();
+}
 
-                <small>${d.tanggal}</small><br>
-                <small>${d.waktu_mulai} - ${d.waktu_selesai}</small>
-                <h3>${d.kegiatan}</h3>
-                <small>📍 ${d.tempat}</small>
-            `;
+/* ---------------------------------------------------
+   Delete
+   action=delete&row=ROW_NUMBER
+---------------------------------------------------*/
+async function apiDelete(rowNumber){
+  const url = sheetURL + "?action=delete&row=" + encodeURIComponent(rowNumber);
+  const r = await fetch(url);
+  return await r.json();
+}
 
-            list.appendChild(card);
-        });
-    }
+/* ---------------------------------------------------
+   UI rendering
+---------------------------------------------------*/
+const elList = document.getElementById("list");
+const elSearch = document.getElementById("searchBox");
+const elFilterHari = document.getElementById("filterHari");
+const elFilterTempat = document.getElementById("filterTempat");
+const elSortBtn = document.getElementById("sortBtn");
+const elRefresh = document.getElementById("refreshBtn");
 
-    function toggleMenu(i) {
-        document.querySelectorAll(".menu-popup").forEach(m => m.style.display = "none");
-        let m = document.getElementById("menu-" + i);
-        m.style.display = (m.style.display === "block") ? "none" : "block";
-    }
+function render(){
+  elList.innerHTML = "";
+  const q = (elSearch.value || "").toLowerCase().trim();
+  const fHari = elFilterHari.value;
+  const fTempat = elFilterTempat.value;
 
-    function editData(i) {
-        alert("Edit data index " + i);
-        // Di sini nanti diarahkan ke form edit
-    }
+  let arr = [...cached];
+  // sort by tanggal if parseable
+  arr.sort((a,b)=>{
+    const da = new Date(a.tanggal).getTime() || 0;
+    const db = new Date(b.tanggal).getTime() || 0;
+    return sortDesc ? db - da : da - db;
+  });
 
-    function hapusData(i) {
-        if (confirm("Yakin ingin menghapus data?")) {
-            data.splice(i, 1);
-            tampilkan();
-        }
-    }
+  let visible = 0;
+  arr.forEach((item, idx) => {
+    const dayUpper = (item.hari || "").toString().toUpperCase();
+    if(fHari !== "Semua" && dayUpper !== fHari.toUpperCase()) return;
+    if(fTempat !== "Semua" && item.tempat !== fTempat) return;
 
-    function tambahData() {
-        alert("Buka form tambah data…");
-    }
+    const textComposite = ((item.kegiatan||"") + " " + (item.tempat||"") + " " + (item.tanggal||"") + " " + (item.hari||"")).toLowerCase();
+    if(q && !textComposite.includes(q)) return;
 
-    document.addEventListener("click", function(e) {
-        if (!e.target.classList.contains("menu-btn")) {
-            document.querySelectorAll(".menu-popup").forEach(m => m.style.display = "none");
-        }
+    visible++;
+    const card = document.createElement("div");
+    card.className = "card";
+
+    // menu button & popup
+    card.innerHTML = `
+      <button class="menu-btn" data-idx="${idx}">⋮</button>
+      <div class="menu-popup" id="menu-${idx}">
+         <div class="opt" data-action="edit" data-idx="${idx}">✏ Edit</div>
+         <div class="opt last" data-action="delete" data-idx="${idx}">🗑 Hapus</div>
+      </div>
+
+      <div class="meta">${item.tanggal}</div>
+      <div class="time">${normalizeTime(item.waktu_mulai)} - ${normalizeTime(item.waktu_selesai) || "SELESAI"}</div>
+      <div class="title">${item.kegiatan || ""}</div>
+      <div class="place">📍 ${item.tempat || ""}</div>
+    `;
+    elList.appendChild(card);
+
+    // attach events for menu button and options
+    const btn = card.querySelector(".menu-btn");
+    const popup = card.querySelector(".menu-popup");
+    btn.addEventListener("click", (ev)=>{
+      ev.stopPropagation();
+      // close others then toggle this
+      document.querySelectorAll(".menu-popup").forEach(p=>{ if(p!==popup) p.style.display = "none"; });
+      popup.style.display = popup.style.display === "block" ? "none" : "block";
     });
 
-    loadTempat();
-    tampilkan();
+    popup.querySelectorAll(".opt").forEach(opt=>{
+      opt.addEventListener("click", async (e)=>{
+        const act = opt.dataset.action;
+        const idxLocal = Number(opt.dataset.idx);
+        const it = arr[idxLocal];
+        if(act === "edit"){
+          openModal("edit", it);
+          popup.style.display = "none";
+        } else if(act === "delete"){
+          popup.style.display = "none";
+          if(confirm("Yakin ingin menghapus item ini?")) {
+            // use row number stored in item._row
+            try{
+              await apiDelete(it._row);
+              await doRefresh(); // refresh after delete
+            }catch(err){
+              alert("Gagal hapus: " + err.message);
+            }
+          }
+        }
+      });
+    });
 
-    search.oninput = tampilkan;
-    filterHari.onchange = tampilkan;
-    filterTempat.onchange = tampilkan;
+  });
+
+  if(visible === 0){
+    elList.innerHTML = `<div class="card"><div class="meta">Tidak ada jadwal.</div></div>`;
+  }
+}
+
+/* ---------------------------------------------------
+   Populate tempat filter
+---------------------------------------------------*/
+function populateTempat(){
+  // clear except first
+  elFilterTempat.querySelectorAll("option:not([value='Semua'])").forEach(o=>o.remove());
+  const unique = [...new Set(cached.map(x=>x.tempat).filter(Boolean))].sort();
+  unique.forEach(t=>{
+    const op = document.createElement("option"); op.value = t; op.textContent = t;
+    elFilterTempat.appendChild(op);
+  });
+}
+
+/* ---------------------------------------------------
+   Refresh helper (reset filters optional)
+---------------------------------------------------*/
+async function doRefresh({resetFilters=true} = {resetFilters:true} ){
+  if(resetFilters){
+    elSearch.value = "";
+    elFilterHari.value = "Semua";
+    elFilterTempat.value = "Semua";
+    sortDesc = true;
+    elSortBtn.textContent = "Sort: Terbaru ↓";
+  }
+  cached = await apiRead();
+  populateTempat();
+  render();
+}
+
+/* ---------------------------------------------------
+   Modal (add/edit)
+---------------------------------------------------*/
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modalTitle = document.getElementById("modalTitle");
+const inpHari = document.getElementById("inpHari");
+const inpTanggal = document.getElementById("inpTanggal");
+const inpMulai = document.getElementById("inpMulai");
+const inpSelesai = document.getElementById("inpSelesai");
+const inpKegiatan = document.getElementById("inpKegiatan");
+const inpTempat = document.getElementById("inpTempat");
+const btnSave = document.getElementById("btnSave");
+const btnCancel = document.getElementById("btnCancel");
+
+let modalMode = "add"; // or "edit"
+let editingItem = null;
+
+function openModal(mode, item=null){
+  modalMode = mode;
+  editingItem = item;
+  modalBackdrop.style.display = "flex";
+  modalTitle.textContent = mode === "add" ? "Tambah Jadwal" : "Edit Jadwal";
+
+  if(mode === "edit" && item){
+    inpHari.value = item.hari || "";
+    inpTanggal.value = item.tanggal || "";
+    inpMulai.value = item.waktu_mulai || "";
+    inpSelesai.value = item.waktu_selesai || "";
+    inpKegiatan.value = item.kegiatan || "";
+    inpTempat.value = item.tempat || "";
+  } else {
+    inpHari.value = ""; inpTanggal.value = ""; inpMulai.value = ""; inpSelesai.value = ""; inpKegiatan.value = ""; inpTempat.value = "";
+  }
+  inpTanggal.focus();
+}
+
+function closeModal(){
+  modalBackdrop.style.display = "none";
+}
+
+/* save (create or edit) */
+btnSave.addEventListener("click", async ()=>{
+  const payload = {
+    hari: inpHari.value || "",
+    tanggal: inpTanggal.value || "",
+    waktu_mulai: inpMulai.value || "",
+    waktu_selesai: inpSelesai.value || "",
+    kegiatan: inpKegiatan.value || "",
+    tempat: inpTempat.value || ""
+  };
+
+  // Basic validation
+  if(!payload.tanggal || !payload.kegiatan){
+    alert("Isi minimal tanggal dan kegiatan.");
+    return;
+  }
+
+  btnSave.textContent = "Menyimpan...";
+  btnSave.disabled = true;
+
+  try{
+    // create (append)
+    await apiCreate(payload);
+
+    // if editing -> delete old row
+    if(modalMode === "edit" && editingItem && editingItem._row){
+      // delete original row (note: this will change row numbers for others)
+      await apiDelete(editingItem._row);
+    }
+
+    await doRefresh({resetFilters:false}); // refresh but keep filters unless you want reset
+    closeModal();
+  }catch(err){
+    alert("Gagal menyimpan: " + err.message);
+    console.error(err);
+  } finally {
+    btnSave.textContent = "Simpan";
+    btnSave.disabled = false;
+  }
+});
+
+btnCancel.addEventListener("click", ()=> closeModal());
+modalBackdrop.addEventListener("click", (e)=> {
+  if(e.target === modalBackdrop) closeModal();
+});
+
+/* Add button */
+document.getElementById("btnAdd").addEventListener("click", ()=> openModal("add", null));
+
+/* Global events */
+elSearch.addEventListener("input", ()=> {
+  clearTimeout(window._debAdmin);
+  window._debAdmin = setTimeout(()=> render(), 160);
+});
+elFilterHari.addEventListener("change", ()=> render());
+elFilterTempat.addEventListener("change", ()=> render());
+
+elSortBtn.addEventListener("click", ()=> {
+  sortDesc = !sortDesc;
+  elSortBtn.textContent = sortDesc ? "Sort: Terbaru ↓" : "Sort: Terlama ↑";
+  render();
+});
+
+elRefresh.addEventListener("click", async ()=> {
+  elRefresh.textContent = "⟳ Loading...";
+  await doRefresh({resetFilters:true});
+  setTimeout(()=> elRefresh.textContent = "⟳ Refresh", 400);
+});
+
+/* close popup menus when clicking outside */
+document.addEventListener("click", function(e){
+  document.querySelectorAll(".menu-popup").forEach(p => p.style.display = "none");
+});
+
+/* initial load */
+(async function(){
+  await doRefresh({resetFilters:true});
+})();
 </script>
-
 </body>
 </html>
