@@ -1,236 +1,226 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
 <title>Admin Jadwal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-/* (SEMUA STYLE TETAP SAMA) */
-:root{
-  --primary:#3949ab;
-  --bg:#f5f7fa;
-  --card:#ffffff;
-  --radius:16px;
-  --pad:16px;
-  font-family:'Segoe UI',Roboto,Arial;
-}
-body{margin:0;background:var(--bg);}
-.header{
-  height:60px;background:var(--primary);color:#fff;
-  display:flex;align-items:center;padding:0 16px;
-  font-size:20px;font-weight:600
-}
-.container{padding:16px}
-.search-box{
-  background:#fff;padding:10px 14px;border-radius:30px;
-  margin-bottom:16px;box-shadow:0 3px 8px rgba(0,0,0,0.1);
-  display:flex;align-items:center
-}
-.search-box input{
-  border:none;outline:none;font-size:16px;width:100%
-}
-.filter-group{display:flex;gap:10px;margin-bottom:16px}
-.filter-group select{
-  flex:1;padding:12px;border-radius:12px;border:1px solid #ccc;
-  font-size:15px
-}
-.card{
-  background:var(--card);border-radius:var(--radius);
-  padding:16px;margin-bottom:16px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.08);
-  position:relative
-}
-.card-title{font-size:18px;font-weight:700;margin-top:8px}
-.card-meta{font-size:15px;color:#444;margin-bottom:6px}
-.more-btn{
-  position:absolute;right:12px;top:12px;font-size:22px;
-  background:none;border:none;cursor:pointer
-}
-.menu{
-  position:absolute;right:12px;top:38px;background:#fff;
-  border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.15);
-  padding:6px;display:none;z-index:10
-}
-.menu div{
-  padding:8px 16px;cursor:pointer;font-size:15px
-}
-.menu div:hover{background:#eee}
-.add-btn{
-  position:fixed;right:20px;bottom:20px;
-  background:var(--primary);color:#fff;width:60px;
-  height:60px;border-radius:50%;display:flex;
-  align-items:center;justify-content:center;
-  font-size:32px;border:none;cursor:pointer;
-  box-shadow:0 6px 14px rgba(0,0,0,0.2)
-}
-.modal-bg{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.4);display:none;
-  align-items:center;justify-content:center
-}
-.modal{
-  background:#fff;width:90%;max-width:380px;border-radius:14px;padding:20px
-}
-.modal h2{margin:0 0 10px;font-size:20px;font-weight:700}
-input,select{
-  width:100%;padding:10px;margin-top:6px;margin-bottom:12px;
-  font-size:15px;border-radius:10px;border:1px solid #ccc
-}
-.modal button{
-  padding:10px 16px;font-size:16px;border:none;
-  border-radius:10px;cursor:pointer;margin-top:4px
-}
-.btn-save{background:var(--primary);color:#fff}
-.btn-cancel{background:#aaa;color:#fff;margin-left:6px}
-.small-note{font-size:13px;color:#666;margin-top:-8px;margin-bottom:8px}
-</style>
-</head>
+    body {
+        margin: 0;
+        background: #0f1a28;
+        font-family: "Inter", sans-serif;
+        color: white;
+    }
 
+    header {
+        background: #1a2d4a;
+        padding: 20px;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .container {
+        padding: 20px;
+        max-width: 900px;
+        margin: auto;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 14px;
+        margin-bottom: 12px;
+        border-radius: 10px;
+        background: #1d2b3f;
+        border: 1px solid #394b63;
+        color: white;
+    }
+
+    .card {
+        background: #142233;
+        padding: 18px;
+        border-radius: 14px;
+        margin-bottom: 14px;
+        border: 1px solid #23364e;
+        position: relative;
+    }
+
+    .card h3 {
+        margin: 6px 0;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .card small {
+        opacity: 0.8;
+    }
+
+    .menu-btn {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    .menu-popup {
+        position: absolute;
+        right: 10px;
+        top: 40px;
+        background: #1d2b3f;
+        border-radius: 8px;
+        border: 1px solid #34465a;
+        display: none;
+        min-width: 120px;
+        z-index: 10;
+    }
+
+    .menu-popup div {
+        padding: 10px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        border-bottom: 1px solid #2e3e52;
+    }
+
+    .menu-popup div:hover {
+        background: #223347;
+    }
+
+    .add-btn {
+        position: fixed;
+        right: 25px;
+        bottom: 25px;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: #3558ff;
+        color: white;
+        border: none;
+        font-size: 30px;
+        cursor: pointer;
+    }
+</style>
+
+</head>
 <body>
-<div class="header">Admin Jadwal</div>
+
+<header>Admin Jadwal</header>
+
 <div class="container">
 
-  <!-- Search -->
-  <div class="search-box">
-    <input id="search" placeholder="Cari kegiatan atau tempat..." />
-  </div>
+    <input type="text" id="search" placeholder="Cari kegiatan atau tempat...">
 
-  <!-- Filter Hari + Tempat -->
-  <div class="filter-group">
     <select id="filterHari">
-      <option value="">Semua Hari</option>
-      <option>Senin</option>
-      <option>Selasa</option>
-      <option>Rabu</option>
-      <option>Kamis</option>
-      <option>Jumat</option>
-      <option>Sabtu</option>
-      <option>Minggu</option>
+        <option value="">Semua Hari</option>
+        <option>Senin</option>
+        <option>Selasa</option>
+        <option>Rabu</option>
+        <option>Kamis</option>
+        <option>Jumat</option>
+        <option>Sabtu</option>
+        <option>Minggu</option>
     </select>
 
     <select id="filterTempat">
-      <option value="">Semua Tempat</option>
-    </select>
-  </div>
-
-  <div id="list"></div>
-</div>
-
-<button class="add-btn" onclick="openAdd()">+</button>
-
-<!-- Modal Form -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <h2 id="modalTitle">Tambah Jadwal</h2>
-
-    <select id="f_hari">
-      <option value="">Pilih Hari</option>
-      <option>Senin</option><option>Selasa</option>
-      <option>Rabu</option><option>Kamis</option>
-      <option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+        <option value="">Semua Tempat</option>
     </select>
 
-    <input id="f_tanggal" type="date" />
-    <input id="f_mulai" type="time" />
-    <input id="f_selesai" placeholder="Waktu selesai (misal: 14:00 atau SELESAI)" />
-    <div class="small-note">Kosongkan bila selesai = SELESAI</div>
-
-    <input id="f_kegiatan" placeholder="Kegiatan" />
-    <input id="f_tempat" placeholder="Tempat" />
-
-    <button class="btn-save" onclick="saveData()">Simpan</button>
-    <button class="btn-cancel" onclick="closeModal()">Batal</button>
-  </div>
+    <div id="list"></div>
 </div>
+
+<button class="add-btn" onclick="tambahData()">+</button>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbzoT6zijm95CM5JRPdAMVJM0MKQoLi0pxJ9V1vGlN79VWl6uf8eFbjTztIYpUCQJWtptw/exec";
+    // ==== DATA CONTOH, bisa diganti dari API ====
+    let data = [
+        {"hari":"JUMAT","tanggal":"2025-11-28","waktu_mulai":"9:00","waktu_selesai":"SELESAI","kegiatan":"UJIAN KOMPREHENSIF S1 MANAJEMEN","tempat":"LAB KOMPUTER"},
+        {"hari":"Selasa","tanggal":"2025-11-25","waktu_mulai":"7:00","waktu_selesai":"SELESAI","kegiatan":"RAPAT DOSEN S1 MANAJEMEN","tempat":"RUANG RAPAT DOSEN"},
+        {"hari":"Kamis","tanggal":"2025-11-27","waktu_mulai":"8:30","waktu_selesai":"SELESAI","kegiatan":"SEMINAR NASIONAL","tempat":"AULA SUHADJI HADIBROTO"},
+        {"hari":"Jumat","tanggal":"2025-11-28","waktu_mulai":"11:00","waktu_selesai":"14","kegiatan":"WORKSHOP","tempat":"AULA MIKIE WIJAYA"}
+    ];
 
-let dataRaw = [];
-let editIndex = -1;
+    const list = document.getElementById("list");
+    const filterHari = document.getElementById("filterHari");
+    const filterTempat = document.getElementById("filterTempat");
+    const search = document.getElementById("search");
 
-async function loadData(){
-  const res = await fetch(API_URL + "?action=read");
-  const data = await res.json();
-  dataRaw = data;
-  render();
-}
+    function loadTempat() {
+        let tempatList = [...new Set(data.map(d => d.tempat))];
+        tempatList.forEach(t => {
+            filterTempat.innerHTML += `<option>${t}</option>`;
+        });
+    }
 
-function render(){
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+    function tampilkan() {
+        list.innerHTML = "";
 
-  dataRaw.forEach((r,i)=>{
-    const card = document.createElement("div");
-    card.className="card";
+        let key = search.value.toLowerCase();
+        let h = filterHari.value;
+        let t = filterTempat.value;
 
-    card.innerHTML = `
-      <button class="more-btn" onclick="toggleMenu(${i})">⋮</button>
-      <div class="menu" id="menu-${i}">
-        <div onclick="editItem(${i})">Edit</div>
-        <div onclick="deleteItem(${i})" style="color:#e53935">Hapus</div>
-      </div>
+        let filtered = data.filter(d =>
+            (h === "" || d.hari.toLowerCase() === h.toLowerCase()) &&
+            (t === "" || d.tempat === t) &&
+            (d.kegiatan.toLowerCase().includes(key) || d.tempat.toLowerCase().includes(key))
+        );
 
-      <div class="card-meta" style="font-weight:700">${r.tanggal}</div>
-      <div class="card-meta">${r.waktu_mulai} - ${r.waktu_selesai}</div>
-      <div class="card-title">${r.kegiatan}</div>
-      <div class="card-meta">📍 ${r.tempat}</div>
-    `;
-    list.appendChild(card);
-  });
-}
+        filtered.forEach((d, i) => {
+            let card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `
+                <button class="menu-btn" onclick="toggleMenu(${i})">⋮</button>
+                <div class="menu-popup" id="menu-${i}">
+                    <div onclick="editData(${i})">✏ Edit</div>
+                    <div onclick="hapusData(${i})">🗑 Hapus</div>
+                </div>
 
-function toggleMenu(i){
-  document.querySelectorAll('.menu').forEach(m=>m.style.display='none');
-  const m = document.getElementById(`menu-${i}`);
-  m.style.display = m.style.display==="block" ? "none" : "block";
-}
+                <small>${d.tanggal}</small><br>
+                <small>${d.waktu_mulai} - ${d.waktu_selesai}</small>
+                <h3>${d.kegiatan}</h3>
+                <small>📍 ${d.tempat}</small>
+            `;
 
-function openAdd(){
-  editIndex = -1;
-  document.getElementById("modalBg").style.display="flex";
-}
+            list.appendChild(card);
+        });
+    }
 
-function closeModal(){
-  document.getElementById("modalBg").style.display="none";
-}
+    function toggleMenu(i) {
+        document.querySelectorAll(".menu-popup").forEach(m => m.style.display = "none");
+        let m = document.getElementById("menu-" + i);
+        m.style.display = (m.style.display === "block") ? "none" : "block";
+    }
 
-function editItem(i){
-  editIndex = i;
-  const r = dataRaw[i];
-  document.getElementById("modalBg").style.display="flex";
-}
+    function editData(i) {
+        alert("Edit data index " + i);
+        // Di sini nanti diarahkan ke form edit
+    }
 
-async function saveData(){
-  const payload = {
-    hari: document.getElementById("f_hari").value,
-    tanggal: document.getElementById("f_tanggal").value,
-    waktu_mulai: document.getElementById("f_mulai").value,
-    waktu_selesai: document.getElementById("f_selesai").value || "SELESAI",
-    kegiatan: document.getElementById("f_kegiatan").value,
-    tempat: document.getElementById("f_tempat").value,
-    action: "create"
-  };
+    function hapusData(i) {
+        if (confirm("Yakin ingin menghapus data?")) {
+            data.splice(i, 1);
+            tampilkan();
+        }
+    }
 
-  const params = new URLSearchParams(payload);
-  await fetch(API_URL + "?" + params.toString());
+    function tambahData() {
+        alert("Buka form tambah data…");
+    }
 
-  closeModal();
-  loadData();
-}
+    document.addEventListener("click", function(e) {
+        if (!e.target.classList.contains("menu-btn")) {
+            document.querySelectorAll(".menu-popup").forEach(m => m.style.display = "none");
+        }
+    });
 
-async function deleteItem(i){
-  if(!confirm("Hapus?")) return;
-  const params = new URLSearchParams({
-    action:"delete",
-    row: i+2
-  });
-  await fetch(API_URL + "?" + params.toString());
-  loadData();
-}
+    loadTempat();
+    tampilkan();
 
-loadData();
+    search.oninput = tampilkan;
+    filterHari.onchange = tampilkan;
+    filterTempat.onchange = tampilkan;
 </script>
 
 </body>
