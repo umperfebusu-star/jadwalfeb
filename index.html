@@ -334,7 +334,15 @@ document.getElementById("filterTempat").addEventListener("change", ()=>renderLis
   renderList(cachedData);
 })();
 </script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/jadwalfeb/service-worker.js")
+      .catch(err => console.log("SW registration failed:", err));
+  }
+</script>
 
+  
 </body>
 </html>
+
 
