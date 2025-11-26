@@ -524,6 +524,16 @@ document.addEventListener("click", function(e){
   await doRefresh({resetFilters:true});
 })();
 </script>
+
+  <script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/jadwalfeb/service-worker.js")
+      .catch(err => console.log("SW registration failed:", err));
+  }
+</script>
+
+  
 </body>
 </html>
+
 
