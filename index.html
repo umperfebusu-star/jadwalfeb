@@ -200,6 +200,23 @@
 
 </div>
 
+  <button id="installBtn" style="
+  display:none;
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  padding:12px 18px;
+  background:#0d6efd;
+  color:white;
+  border:none;
+  border-radius:8px;
+  font-size:16px;
+  z-index:9999;
+">
+  Install Aplikasi
+</button>
+
+
 <script>
 const sheetURL = "https://script.google.com/macros/s/AKfycbzoT6zijm95CM5JRPdAMVJM0MKQoLi0pxJ9V1vGlN79VWl6uf8eFbjTztIYpUCQJWtptw/exec";
 
@@ -343,8 +360,44 @@ document.getElementById("filterTempat").addEventListener("change", ()=>renderLis
     });
   }
 </script>
+<script>
+  let deferredPrompt;
+  const installBtn = document.getElementById("installBtn");
+
+  // Menangkap event sebelum Chrome menampilkan prompt instalasi
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault(); // cegah Chrome menampilkan prompt default
+    deferredPrompt = e;
+    installBtn.style.display = "block"; // tampilkan tombol
+  });
+
+  // Aksi ketika tombol diklik
+  installBtn.addEventListener("click", async () => {
+    installBtn.style.display = "none"; // sembunyikan tombol
+    if (deferredPrompt) {
+      deferredPrompt.prompt(); // tampilkan pop-up instalasi PWA
+      const result = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+
+      if (result.outcome === "accepted") {
+        console.log("User accepted install");
+      } else {
+        console.log("User dismissed install");
+      }
+    }
+  });
+
+  // Jika aplikasimu sudah terinstall
+  window.addEventListener("appinstalled", () => {
+    installBtn.style.display = "none";
+    console.log("App installed!");
+  });
+</script>
+
+  
 </body>
 </html>
+
 
 
 
