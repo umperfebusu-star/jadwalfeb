@@ -1,99 +1,407 @@
 <!doctype html>
 <html lang="id">
 <head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jadwal Kegiatan — FEB USU (Glassmorphism)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#041728;
+    --bg2:#06273a;
+    --accent1:#3f51b5;
+    --accent2:#145ea8;
+    --glass-border: rgba(255,255,255,0.08);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 60%);
+    color: #eaf2ff;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0d6efd">
+  /* Topbar */
+  .topbar{
+    position:sticky; top:0; z-index:60;
+    background: linear-gradient(90deg,var(--accent1), var(--accent2));
+    padding:16px 18px;
+    text-align:center;
+    font-weight:800;
+    font-size:18px;
+    box-shadow: 0 6px 18px rgba(2,8,23,0.45);
+    color:#fff;
+    backdrop-filter: blur(6px);
+  }
 
-  <!-- iOS support -->
-  <link rel="apple-touch-icon" href="icons/icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  .container{
+    max-width:880px;
+    margin:22px auto;
+    padding:18px;
+  }
 
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jadwal Kegiatan – FEB USU</title>
+  .title {
+    text-align:center;
+    font-size:30px;
+    font-weight:800;
+    margin:8px 0 18px;
+  }
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  /* Search + filters */
+  .search-wrap { margin-bottom:12px; }
+  .search {
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--glass-border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    color:inherit;
+    outline:none;
+    font-size:15px;
+  }
 
-  <!-- STYLE.CSS (kalau ada) -->
-  <link rel="stylesheet" href="style.css">
+  .filters {
+    display:flex;
+    gap:12px;
+    margin-top:12px;
+    align-items:center;
+    position:sticky;
+    top:72px;
+    z-index:50;
+  }
 
+  .filter {
+    flex:1;
+    display:flex;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--glass-border);
+    align-items:center;
+  }
+
+  .filter select {
+    width:100%; border:0; background:transparent; color:inherit; outline:none; font-size:14px;
+  }
+
+  .controls {
+    display:flex; gap:8px; align-items:center;
+  }
+
+  .btn {
+    padding:9px 12px;
+    border-radius:10px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border:1px solid var(--glass-border);
+    color: #fff;
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+  }
+  .btn:active{ transform: translateY(1px); }
+
+  /* list */
+  #list {
+    margin-top:18px;
+    display:flex; flex-direction:column; gap:14px;
+  }
+
+  .card {
+    padding:16px;
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border:1px solid var(--glass-border);
+    box-shadow: 0 10px 28px rgba(2,8,23,0.45);
+    opacity:0; transform: translateY(10px) scale(0.995);
+    transition: all 420ms cubic-bezier(.2,.9,.3,1);
+  }
+  .card.show { opacity:1; transform: translateY(0) scale(1); }
+
+  .card.today {
+    border:1px solid rgba(99,102,241,0.35);
+    box-shadow: 0 14px 36px rgba(29,78,216,0.16);
+    background: linear-gradient(180deg, rgba(99,102,241,0.06), rgba(255,255,255,0.01));
+  }
+
+  .card .head {
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+  }
+  .card .tanggal {
+    font-weight:800; font-size:16px; color:#fff;
+  }
+  .card .waktu {
+    font-weight:700; font-size:15px; color:#dbeafe;
+  }
+
+  .card .kegiatan {
+    margin-top:10px; font-weight:800; font-size:18px; color:#fff; text-transform:uppercase;
+  }
+
+  .card .tempat {
+    margin-top:8px; display:flex; gap:8px; align-items:center; color:#dbeafe; font-size:15px;
+  }
+  .pin { width:12px; height:12px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #fff, #c7d2fe); display:inline-block; }
+
+  .empty {
+    padding:22px; border-radius:12px; text-align:center; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid var(--glass-border);
+  }
+
+  @media(min-width:900px){
+    .filters { gap:16px; }
+    .card { padding:20px; }
+  }
+</style>
 </head>
-
 <body>
+  <div class="topbar">FAKULTAS EKONOMI DAN BISNIS — USU</div>
 
-  <!-- ====== KONTEN SITUS KAMU DI SINI ====== -->
-  <!-- Saya tidak mengubah bagian konten sama sekali -->
-  
-  <header>
-    <h1>Jadwal Kegiatan – FEB USU</h1>
-  </header>
+  <div class="container">
+    <div class="title">Jadwal Kegiatan FEB USU</div>
 
-  <div id="app">
-      <!-- semua konten kamu tetap di sini -->
+    <div class="search-wrap">
+      <input id="searchBox" class="search" placeholder="Cari kegiatan, ruangan, atau hari (ketik dan tekan enter atau tunggu)..." />
+    </div>
+
+    <div class="filters">
+      <div class="filter">
+        <select id="filterHari" aria-label="Filter Hari">
+          <!-- Hari diset statis dari Senin → Minggu sesuai permintaan -->
+          <option value="Semua">Filter: Semua Hari</option>
+          <option value="SENIN">Senin</option>
+          <option value="SELASA">Selasa</option>
+          <option value="RABU">Rabu</option>
+          <option value="KAMIS">Kamis</option>
+          <option value="JUMAT">Jumat</option>
+          <option value="SABTU">Sabtu</option>
+          <option value="MINGGU">Minggu</option>
+        </select>
+      </div>
+
+      <div class="filter">
+        <select id="filterTempat" aria-label="Filter Tempat">
+          <option value="Semua">Filter: Semua Tempat</option>
+        </select>
+      </div>
+
+      <div class="controls">
+        <button id="refreshBtn" class="btn" title="Refresh daftar">⟳ Refresh</button>
+        <button id="sortBtn" class="btn" title="Urutkan berdasarkan tanggal">Sort: Terbaru ↓</button>
+      </div>
+    </div>
+
+    <div id="list"></div>
   </div>
 
+<script>
+/* ========== GANTI sheetURL DENGAN WEB APP DEPLOY YG AKTIF ========== */
+/* Saya pakai URL yang kamu kirim sebelumnya — ganti jika perlu */
+const sheetURL = "https://script.google.com/macros/s/AKfycbzoT6zijm95CM5JRPdAMVJM0MKQoLi0pxJ9V1vGlN79VWl6uf8eFbjTztIYpUCQJWtptw/exec";
 
-  <!-- Tombol Install App Manual (opsional) -->
-  <button id="installBtn" style="
-    display:none;
-    position:fixed;
-    bottom:20px;
-    right:20px;
-    padding:12px 18px;
-    background:#0d6efd;
-    color:white;
-    border:none;
-    border-radius:8px;
-    font-size:16px;
-    z-index:9999;
-  ">
-    Install Aplikasi
-  </button>
+const bulanNama = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const hariNama = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
 
+// Utility: format tanggal menjadi "KAMIS, 27 November 2025"
+function formatTanggalDisplay(tglISOorStr){
+  // coba parse ISO yyyy-mm-dd
+  if(!tglISOorStr) return "";
+  let d = null;
 
-  <!-- Script aplikasi utama -->
-  <script src="script.js"></script>
-
-  <!-- Script Install App -->
-  <script>
-  let deferredPrompt;
-  const installBtn = document.getElementById("installBtn");
-
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = "block";
-  });
-
-  installBtn.addEventListener("click", async () => {
-    installBtn.style.display = "none";
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const result = await deferredPrompt.userChoice;
-      deferredPrompt = null;
-    }
-  });
-
-  window.addEventListener("appinstalled", () => {
-    installBtn.style.display = "none";
-  });
-  </script>
-
-
-  <!-- REGISTER SERVICE WORKER (FIXED 100%) -->
-  <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./service-worker.js")
-        .then(reg => console.log("Service Worker ACTIVE:", reg))
-        .catch(err => console.log("SW registration failed:", err));
-    });
+  // iso yyyy-mm-dd
+  let m = (""+tglISOorStr).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m){
+    d = new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+  } else {
+    // coba Date constructor (fallback)
+    const dd = new Date(tglISOorStr);
+    if(!isNaN(dd.getTime())) d = dd;
   }
-  </script>
+  if(!d) return (""+tglISOorStr);
 
+  const hari = hariNama[d.getUTCDay()].toUpperCase();
+  const tgl = d.getUTCDate();
+  const bln = bulanNama[d.getUTCMonth()];
+  const thn = d.getUTCFullYear();
+  return `${hari}, ${tgl} ${bln} ${thn}`;
+}
+
+// Utility: format waktu -> "14" -> "14:00", "8:3" -> "08:03", "SELESAI" stays
+function formatWaktuRaw(w){
+  if(w === undefined || w === null) return "";
+  const s = (""+w).trim();
+  if(s.toUpperCase().includes("SELESAI")) return "SELESAI";
+  // if it's pure number like 14
+  if(/^\d{1,2}$/.test(s)) return s.padStart(2,"0") + ":00";
+  // if like 8:3 or 08:3 or 8:30
+  if(/^\d{1,2}:\d{1,2}$/.test(s)){
+    const parts = s.split(":"); return parts[0].padStart(2,"0") + ":" + parts[1].padStart(2,"0");
+  }
+  // If timezone or datetime (like 1899-12-30T03:52) try parse as Date
+  const dd = new Date(s);
+  if(!isNaN(dd.getTime())){
+    // get hours/minutes in UTC because many spreadsheet serial parse produce weird local offsets; we treat date as UTC date of sheet
+    const hh = String(dd.getUTCHours()).padStart(2,"0");
+    const mm = String(dd.getUTCMinutes()).padStart(2,"0");
+    return hh + ":" + mm;
+  }
+  return s;
+}
+
+// parse tanggal to Date object (UTC normalized)
+function parseTanggalToUTC(tglStr){
+  if(!tglStr) return null;
+  const s = (""+tglStr).trim();
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m) return new Date(Date.UTC(+m[1], +m[2]-1, +m[3]));
+  const dd = new Date(s);
+  if(!isNaN(dd.getTime())) return dd;
+  return null;
+}
+
+let cachedData = [];
+let sortDesc = true;
+
+// fetch data from Apps Script
+async function fetchData(){
+  try{
+    const res = await fetch(sheetURL + "?action=read");
+    if(!res.ok) throw new Error("Network response not ok: " + res.status);
+    const json = await res.json();
+    if(!Array.isArray(json)) return [];
+    // enrich
+    return json.map((r, idx) => {
+      const tanggalRaw = r.tanggal || "";
+      const dateObj = parseTanggalToUTC(tanggalRaw);
+      return {
+        ...r,
+        _dateObj: dateObj, // may be null
+        waktu_mulai: r.waktu_mulai || "",
+        waktu_selesai: r.waktu_selesai || "",
+        _rowIndex: idx + 2
+      };
+    });
+  }catch(err){
+    console.error("fetchData error:", err);
+    return [];
+  }
+}
+
+function populateTempatFilter(data){
+  const tempatSet = new Set();
+  data.forEach(d => {
+    if(d.tempat) tempatSet.add(d.tempat);
+  });
+  const sel = document.getElementById("filterTempat");
+  // clear existing except first
+  sel.querySelectorAll("option:not([value='Semua'])").forEach(o => o.remove());
+  Array.from(tempatSet).sort().forEach(t => {
+    const op = document.createElement("option"); op.value = t; op.textContent = t;
+    sel.appendChild(op);
+  });
+}
+
+function renderList(data){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  const q = (document.getElementById("searchBox").value || "").toLowerCase().trim();
+  const fHari = document.getElementById("filterHari").value; // SENIN..MINGGU or Semua
+  const fTempat = document.getElementById("filterTempat").value;
+
+  // sort by date (use _dateObj if available; otherwise fallback to string)
+  const sorted = [...data].sort((a,b) => {
+    const ta = a._dateObj ? a._dateObj.getTime() : 0;
+    const tb = b._dateObj ? b._dateObj.getTime() : 0;
+    return sortDesc ? tb - ta : ta - tb;
+  });
+
+  let visible = 0;
+  const now = new Date();
+  const nowUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+
+  sorted.forEach((item, i) => {
+    // compute day name
+    let dayUpper = "";
+    if(item._dateObj) dayUpper = hariNama[item._dateObj.getUTCDay()].toUpperCase();
+    else if(item.hari) dayUpper = (""+item.hari).trim().toUpperCase();
+
+    // filter hari
+    if(fHari !== "Semua" && dayUpper !== fHari) return;
+    // filter tempat
+    if(fTempat !== "Semua" && (item.tempat || "") !== fTempat) return;
+
+    // build display strings
+    const tanggalDisplay = item.tanggal ? formatTanggalDisplay(item.tanggal) : (item._dateObj ? formatTanggalDisplay(item._dateObj.toISOString().slice(0,10)) : "");
+    const mulai = formatWaktuRaw(item.waktu_mulai);
+    const selesai = formatWaktuRaw(item.waktu_selesai);
+    const waktuText = (mulai ? mulai : "") + (selesai ? " - " + selesai : (mulai ? "" : ""));
+    const composite = (tanggalDisplay + " " + waktuText + " " + (item.kegiatan || "") + " " + (item.tempat || "")).toLowerCase();
+
+    if(q && !composite.includes(q)) return;
+
+    visible++;
+    const card = document.createElement("div");
+    card.className = "card";
+
+    // highlight today
+    if(item._dateObj){
+      const dUTC = new Date(Date.UTC(item._dateObj.getUTCFullYear(), item._dateObj.getUTCMonth(), item._dateObj.getUTCDate()));
+      if(dUTC.getTime() === nowUTC.getTime()) card.classList.add("today");
+    }
+
+    card.innerHTML = `
+      <div class="head">
+        <div class="tanggal">${tanggalDisplay}</div>
+        <div class="waktu">${waktuText}</div>
+      </div>
+      <div class="kegiatan">${item.kegiatan || ""}</div>
+      <div class="tempat"><span class="pin"></span>${item.tempat || ""}</div>
+    `;
+
+    list.appendChild(card);
+    // staggered animation
+    setTimeout(()=> card.classList.add("show"), 40 * (i % 30));
+  });
+
+  if(visible === 0){
+    list.innerHTML = `<div class="empty">Tidak ada jadwal.</div>`;
+  }
+}
+
+/* 初始 (init) */
+async function init(){
+  // attach listeners
+  document.getElementById("searchBox").addEventListener("input", ()=> {
+    // small debounce
+    clearTimeout(window._debSchedule);
+    window._debSchedule = setTimeout(()=> renderList(cachedData), 180);
+  });
+  document.getElementById("filterHari").addEventListener("change", ()=> renderList(cachedData));
+  document.getElementById("filterTempat").addEventListener("change", ()=> renderList(cachedData));
+
+  document.getElementById("refreshBtn").addEventListener("click", async ()=>{
+    document.getElementById("refreshBtn").textContent = "⟳ Refreshing...";
+    cachedData = await fetchData();
+    populateTempatFilter(cachedData);
+    renderList(cachedData);
+    setTimeout(()=> document.getElementById("refreshBtn").textContent = "⟳ Refresh", 600);
+  });
+
+  document.getElementById("sortBtn").addEventListener("click", ()=>{
+    sortDesc = !sortDesc;
+    document.getElementById("sortBtn").textContent = sortDesc ? "Sort: Terbaru ↓" : "Sort: Terlama ↑";
+    renderList(cachedData);
+  });
+
+  // initial load
+  cachedData = await fetchData();
+  populateTempatFilter(cachedData);
+  renderList(cachedData);
+}
+
+// run
+init();
+</script>
 </body>
 </html>
