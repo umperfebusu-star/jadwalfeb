@@ -65,6 +65,24 @@
   }
   .filters select { width:100%; background:transparent; color:inherit; border:0; outline:none; font-size:14px; }
 
+  /* WARNA DROPDOWN — AGAR TERBACA JELAS */
+.filters select,
+.s select {
+  background: #1b3247 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+/* Warna item di dalam dropdown */
+.filters select option,
+.s select option {
+  background: #0f2636;
+  color: #fff;
+}
+
+
   .controls{
     display:flex; gap:10px; margin-top:12px; align-items:center;
   }
@@ -131,9 +149,9 @@
   <div class="container">
     <input id="searchBox" class="search" placeholder="Cari kegiatan atau tempat..." />
 
-    <div class="filters">
-      <div class="filter">
-        <select id="filterHari">
+    <div class="s">
+      <div class="">
+        <select id="Hari">
           <option value="Semua">Semua Hari</option>
           <option value="SENIN">Senin</option>
           <option value="SELASA">Selasa</option>
@@ -528,6 +546,7 @@ document.addEventListener("click", function(e){
 </script>
 </body>
 </html>
+
 
 
 
