@@ -380,12 +380,25 @@ async function init(){
   document.getElementById("filterTempat").addEventListener("change", ()=> renderList(cachedData));
 
   document.getElementById("refreshBtn").addEventListener("click", async ()=>{
-    document.getElementById("refreshBtn").textContent = "⟳ Refreshing...";
-    cachedData = await fetchData();
-    populateTempatFilter(cachedData);
-    renderList(cachedData);
-    setTimeout(()=> document.getElementById("refreshBtn").textContent = "⟳ Refresh", 600);
-  });
+  document.getElementById("refreshBtn").textContent = "⟳ Refreshing...";
+
+  // --- RESET SEMUA FILTER & SEARCH ---
+  document.getElementById("searchBox").value = "";
+  document.getElementById("filterHari").value = "Semua";
+  document.getElementById("filterTempat").value = "Semua";
+
+  // --- FETCH ULANG DATA ---
+  cachedData = await fetchData();
+
+  // Isi ulang dropdown tempat (karena data segar)
+  populateTempatFilter(cachedData);
+
+  // Render ulang seluruh jadwal (tanpa filter)
+  renderList(cachedData);
+
+  setTimeout(()=> document.getElementById("refreshBtn").textContent = "⟳ Refresh", 600);
+});
+
 
   document.getElementById("sortBtn").addEventListener("click", ()=>{
     sortDesc = !sortDesc;
@@ -404,4 +417,5 @@ init();
 </script>
 </body>
 </html>
+
 
